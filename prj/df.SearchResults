@@ -1,2 +1,0 @@
----- begin: Matches (1 in 1 files) ----
-Data_filter.cpp (e:\work_broadtech\data_filter\src):			LOG("Log%d->  begin: %s", thread_num, file_name.c_str());
