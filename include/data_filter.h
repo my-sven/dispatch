@@ -60,6 +60,7 @@ typedef struct input
 {
 	string			input_path;		// 传入文件目录全路径
 	string			exp_name;		// 文件后缀名,值为""表示任意后缀名
+	string			bak_path;		// 
 	bool operator <(const input& other) const
 	{
 		if(input_path < other.input_path)
@@ -69,6 +70,10 @@ typedef struct input
 		else if(0 == input_path.compare(other.input_path))
 		{
 			return exp_name < other.exp_name;
+		}
+		else if(0 == exp_name.compare(other.exp_name))
+		{
+			return bak_path < other.bak_path;
 		}
 		return false;
 	}
@@ -113,11 +118,11 @@ typedef struct
 									// 注：当direction为方向时column是不需要抽取的列
 }Config;
 
-typedef struct
+typedef struct 
 {
-	string path;
-	string name;
-}Path_Name , *p_path_name;
+	string tmp_path;
+	string bak_path;
+}Tmp_bak;
 
 typedef CDeque<string> CDeque_str;
 
@@ -129,7 +134,7 @@ typedef map<Input, map_oc> map_im;
 
 typedef map<Key, map_im> map_km;
 
-typedef map<string, string> map_ss;
+typedef map<string, Tmp_bak> map_st;
 
 
 class FilterData
@@ -270,8 +275,8 @@ private:
 
 	map_km m_filter;
 	
-	map_ss m_inpath_to_tmp;
-
+	map_st m_inpath_to_tmp;
+	
 	CDeque_str file_deque;
 	
 };

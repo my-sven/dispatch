@@ -10,7 +10,6 @@
 void FilterData::init_config(Config *data)
 {
 	data->copy = -1;
-	data->backup_path = "";
 	data->split = "";
 	data->need_head_tail = -1;
 	data->direction = -1;
@@ -76,6 +75,15 @@ void FilterData::get_base_info(TiXmlElement *pElement, Config &p_config)
 			{
 				in.exp_name = "";
 			}
+
+			if(pElement->Attribute("bak_path"))
+    		{
+    			in.bak_path = pElement->Attribute("bak_path");
+    		}
+			else
+			{
+				in.bak_path = "";
+			}
 			p_config.v_input.push_back(in);
 			
     	}
@@ -102,17 +110,6 @@ void FilterData::get_base_info(TiXmlElement *pElement, Config &p_config)
 
 			p_config.v_output.push_back(out);
 			
-    	}
-		else if(!strcmp(pElement->Value(), "backup_path"))
-    	{
-    		if(pElement->Attribute("path"))
-    		{
-    			p_config.backup_path = pElement->Attribute("path");
-    		}
-			else
-			{
-				p_config.backup_path = global_info.backup_path;
-			}
     	}
 		else if(!strcmp(pElement->Value(), "mode"))
 		{
@@ -228,7 +225,10 @@ int FilterData::load_config_info(string str_file_name)
         pElement = pElement->NextSiblingElement();
     }
 
-	check_config();
+	if(check_config() != 0)
+	{
+		return -1;
+	}
 	get_filter_map();
 	get_inpath_map();
 	
@@ -245,11 +245,6 @@ int FilterData::check_config()
 	
 	for(size_t site=0; site<v_filter.size(); site++)
 	{
-		if(!strcmp(v_filter[site].backup_path.c_str(), ""))
-		{
-			v_filter[site].backup_path = global_info.backup_path;
-		}
-
 		if(v_filter[site].copy == -1)
 		{
 			v_filter[site].copy = global_info.copy;
@@ -280,32 +275,25 @@ int FilterData::check_config()
 			v_filter[site].filter = global_info.filter;
 		}
 
-		boost::trim_right_if(v_filter[site].backup_path, boost::is_any_of("/ "));
 		boost::trim_if(v_filter[site].column, boost::is_any_of(", "));
 		boost::trim_if(v_filter[site].filter, boost::is_any_of(" |*"));
 
-		int copy = v_filter[site].copy;
 		if(v_filter[site].copy<0 || v_filter[site].copy>1)
 		{
-			LOG("Warning-> Invalid need_head_tail: %d "
-				"Will use the default value of 0", copy);
-			v_filter[site].copy = 0;
+			LOG("Error-> Invalid copy: %d range(0,1)", v_filter[site].copy);
+			return -1;
 		}
 		
-		int need = v_filter[site].need_head_tail;
 		if(v_filter[site].need_head_tail<0 || v_filter[site].need_head_tail>3)
 		{
-			LOG("Warning-> Invalid need_head_tail: %d "
-				"Will use the default value of 0", need);
-			v_filter[site].need_head_tail = 0;
+			LOG("Error-> Invalid need_head_tail: %d range(0,3)", v_filter[site].need_head_tail);
+			return -1;
 		}
 
-		int direc = v_filter[site].direction;
 		if(v_filter[site].direction<0 || v_filter[site].direction>3)
 		{
-			LOG("Warning-> Invalid direction: %d "
-				"Will use the default value of 0", direc);
-			v_filter[site].direction = 0;
+			LOG("Error-> Invalid direction: %d range(0,3)", v_filter[site].direction);
+			return -1;
 		}
 
 		for(size_t i=0; i<v_filter[site].v_output.size(); i++)
@@ -322,12 +310,10 @@ int FilterData::check_config()
 			
 			boost::trim_right_if(v_filter[site].v_output[i].output_path, boost::is_any_of("/ "));
 			
-			int del = v_filter[site].v_output[i].del_size0;
 			if(v_filter[site].v_output[i].del_size0<0 || v_filter[site].v_output[i].del_size0>1)
 			{
-				LOG("Warning-> Invalid del_size0: %d "
-					"Will use the default value of 0", del);
-				v_filter[site].v_output[i].del_size0 = 0;
+				LOG("Error-> Invalid direction: %d range(0,1)", v_filter[site].v_output[i].del_size0);
+				return -1;
 			}
 		}
 
@@ -344,8 +330,14 @@ int FilterData::check_config()
 				v_filter[site].v_input[j].exp_name = global_info.v_input[0].exp_name;
 			}
 
+			if(!strcmp(v_filter[site].v_input[j].bak_path.c_str(), ""))
+			{
+				v_filter[site].v_input[j].bak_path = global_info.v_input[0].bak_path;
+			}
+
 			boost::trim_right_if(v_filter[site].v_input[j].input_path, boost::is_any_of("/ "));
 			boost::trim_if(v_filter[site].v_input[j].exp_name, boost::is_any_of(" "));
+			boost::trim_right_if(v_filter[site].v_input[j].bak_path, boost::is_any_of("/ "));
 		}
 
 		for(size_t j=0; j<v_filter[site].v_key.size(); j++)
@@ -362,12 +354,10 @@ int FilterData::check_config()
 
 			boost::trim_if(v_filter[site].v_key[j].key_name, boost::is_any_of(" "));
 			
-			int s = v_filter[site].v_key[j].key_site;
 			if(v_filter[site].v_key[j].key_site<0 || v_filter[site].v_key[j].key_site>2)
 			{
-				LOG("Warning-> Invalid key_site: %d "
-					"Will use the default value of 0", s);
-				v_filter[site].v_key[j].key_site = 0;
+				LOG("Error-> Invalid key_site: %d range(0,1)", v_filter[site].v_key[j].key_site);
+				return -1;
 			}
 
 		}
@@ -446,18 +436,19 @@ int FilterData::get_inpath_map()
 		for(size_t in=0; in<v_filter[site].v_input.size(); in++)
 		{
 			// 创建 m_inpath_to_tmp map
-			map_ss::iterator it;
-			it = m_inpath_to_tmp.find(v_filter[site].v_input[in].input_path);
-			if(it == m_inpath_to_tmp.end())
+			map_st::iterator it_tmp;
+			it_tmp = m_inpath_to_tmp.find(v_filter[site].v_input[in].input_path);
+			if(it_tmp == m_inpath_to_tmp.end())
 			{
 			    input_tmp_dir = INPUT_TMP_DIR;
 				str_add_int(input_tmp_dir, count);
+				Tmp_bak tmp;
+				tmp.tmp_path = input_tmp_dir;
+				tmp.bak_path = v_filter[site].v_input[in].bak_path;
 				m_inpath_to_tmp.insert(make_pair(
-					v_filter[site].v_input[in].input_path,input_tmp_dir));
-				
+					v_filter[site].v_input[in].input_path,tmp));
 				count++;
 			}
-			
 		}
 	}
 }
@@ -753,7 +744,8 @@ int FilterData::get_filename_from_dir(
 			{
 				string tmp_path;
 				string tmp_name;
-				join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(src_path)->second);
+				join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(src_path)->second.tmp_path);
+				make_dir(tmp_path);
 				join_path(tmp_name, tmp_path, file_name);
 				rename_file(full_name, tmp_name);
 
@@ -805,7 +797,7 @@ string FilterData::join_path(
 int FilterData::rename_file(string src_name, string dest_name)
 {	
 	size_t pos;
-	string par_dir_path;
+	string dir_path;
 
 	if(0 != rename(src_name.c_str(), dest_name.c_str()))
 	{
@@ -814,12 +806,13 @@ int FilterData::rename_file(string src_name, string dest_name)
 			LOG("Error-> dir or file is not exist: %s", src_name.c_str(), strerror(errno));
 			return -1;
 		}
-		pos = dest_name.find_last_of("/");
-		par_dir_path = dest_name.substr(0, pos);
-		make_dir(par_dir_path);
+		
+		dir_path = dest_name.substr(0, dest_name.find_last_of("/"));
+		make_dir(dir_path);
+		
 		if(0 != rename(src_name.c_str(), dest_name.c_str()))
 		{
-			LOG("Error-> move %s error: %s", src_name.c_str(), strerror(errno));
+			LOG("Error-> move %s to %s error: %s", src_name.c_str(),dest_name.c_str(), strerror(errno));
 			return -1;
 		}
 	}
@@ -827,23 +820,30 @@ int FilterData::rename_file(string src_name, string dest_name)
 }
 
 
-int FilterData::copy_file(string src_path, string dest_path)
+int FilterData::copy_file(string src_name, string dest_name)
 {
 	ifstream fread;
 	ofstream fout;
+	string dir_path;
 
-	fread.open(src_path.c_str(), ios_base::in|ios_base::binary);
+	fread.open(src_name.c_str(), ios_base::in|ios_base::binary);
 	if(!fread)
 	{
-		LOG("Error-> Open file failed: %s", src_path.c_str());
+		LOG("Error-> Open file failed: %s", src_name.c_str());
 		return -1;
 	}
 
-	fout.open(dest_path.c_str(), ios_base::out|ios_base::binary|ios_base::trunc);
+	fout.open(dest_name.c_str(), ios_base::out|ios_base::binary|ios_base::trunc);
 	if(!fout)
 	{
-		LOG("Error-> Open file failed: %s", dest_path.c_str());
-		return -1;
+		dir_path = dest_name.substr(0, dest_name.find_last_of("/"));
+		make_dir(dir_path);
+		fout.open(dest_name.c_str(), ios_base::out|ios_base::binary|ios_base::trunc);
+		if(!fout)
+		{
+			LOG("Error-> Open file failed: %s", dest_name.c_str());
+			return -1;
+		}
 	}
 
 	fout<<fread.rdbuf();
@@ -889,12 +889,6 @@ int FilterData::process_files(
 		{
 			copy_file(input_name, temp_name);
 			rename_file(temp_name, output_name);
-			// 判断 backup_path是否为空
-			if(strcmp(p_config->backup_path.c_str(), ""))
-			{
-				make_dir(p_config->backup_path); // 判断备份路径是否存在，并创建
-				copy_file(input_name, backup_name);
-			}
 			continue;
 		}
 
@@ -922,17 +916,23 @@ int FilterData::process_files(
 			fout<< str_read_line <<endl;
 		}
 		// 循环处理文件里的每一行数据
-		while(getline(fread, str_read_line))
+		while(!fread.eof())
 		{
+			getline(fread, str_read_line);
 			if(fread.eof())
 			{
 				if(2==p_config->need_head_tail || 3==p_config->need_head_tail)
 				{
-					getline(fread, str_read_line);
 					fout<< str_read_line <<endl;
+					continue;
 				}
+			}
+
+			if(0 == str_read_line.size()) // 跳过空数据行
+			{
 				continue;
 			}
+			
 			bool filter_flag;
 			vector_str v_str;
 			vector_str v_out_str;
@@ -960,6 +960,7 @@ int FilterData::process_files(
 				fout<< boost::join(v_out_str, p_config->split) <<endl;
 			}
 		}
+		
 		if(fread.is_open())
 		{
 			fread.close();
@@ -987,13 +988,6 @@ int FilterData::process_files(
 			rename_file(temp_name, output_name); // 将temp文件更名为输出文件
 		}
 
-		// 判断 backup_path是否为空
-		if(strcmp(p_config->backup_path.c_str(), ""))
-		{
-			make_dir(p_config->backup_path); // 判断备份路径是否存在，并创建
-			copy_file(input_name, backup_name);
-		}
-	
 	}
 
 	return 0;
@@ -1019,11 +1013,16 @@ void FilterData::analysis_config(size_t thread_num)
 			string path_name = path_and_name.substr(0, pos);
 			string file_name = path_and_name.substr(pos+1);
 
-			LOG("Log%d->  begin: %s", thread_num, file_name.c_str());
+			LOG("Log%d->  begin: %s", thread_num, path_and_name.c_str());
+
+			string bak_path;
+			string bak_name;
+			bak_path = m_inpath_to_tmp.find(path_name)->second.bak_path;
+			join_path(bak_name, bak_path, file_name);
 
 			string tmp_path;
 			string tmp_name;
-			join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(path_name)->second);
+			join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(path_name)->second.tmp_path);
 			join_path(tmp_name, tmp_path, file_name);
 
 			map_km::iterator it_km;
@@ -1084,21 +1083,13 @@ void FilterData::analysis_config(size_t thread_num)
 				}
 			}
 
-			/*/ 判断backup_path是否为空,不为空备份到backup_path
-			if(strcmp(global_info.backup_path.c_str(), ""))
+			// 判断bak_path是否为空,不为空备份到bak_path
+			if(strcmp(bak_path.c_str(), ""))
 			{
-				make_dir(global_info.backup_path); // 判断备份路径是否存在，并创建
-				string backup_name;
-				join_path(backup_name, global_info.backup_path, file_name);
-				rename_file(tmp_name, backup_name);
-			}*/
-			
-			if(0 != remove(tmp_name.c_str())) //处理完后 清除线程缓存文件
-			{
-				LOG("Error-> rename error: %s %s", tmp_name.c_str(), strerror(errno));
+				rename_file(tmp_name, bak_name);
 			}
 
-			LOG("Log%d-> finish: %s", thread_num, file_name.c_str());
+			LOG("Log%d-> finish: %s", thread_num, path_and_name.c_str());
 		}
 
 		sleep(1);
@@ -1107,22 +1098,22 @@ void FilterData::analysis_config(size_t thread_num)
 
 void FilterData::scanning_file()
 {
-	map_ss::iterator it_ss;
+	map_st::iterator it_st;
 	while(1)
 	{
-		for(it_ss = m_inpath_to_tmp.begin(); it_ss != m_inpath_to_tmp.end(); it_ss++)
+		for(it_st = m_inpath_to_tmp.begin(); it_st != m_inpath_to_tmp.end(); it_st++)
 		{
 			
 			string tmp_path;
-			string input_path = it_ss->first;
+			string input_path = it_st->first;
 			vector_str v_file_name;
 			vector_str::iterator it_dir;
 			LOG("Log-> start scanning file :%s",input_path.c_str());
 
 			if(0 != get_filename_from_dir(input_path, input_path, false))
 			{
-				m_inpath_to_tmp.erase(it_ss);
-				it_ss--;
+				m_inpath_to_tmp.erase(it_st);
+				it_st--;
 				continue;
 			}
 			LOG("Log-> end scanning file :%s",input_path.c_str());
@@ -1133,12 +1124,12 @@ void FilterData::scanning_file()
 
 void FilterData::check_thread_temp()
 {
-	map_ss::iterator it_ss;
-	for(it_ss = m_inpath_to_tmp.begin(); it_ss != m_inpath_to_tmp.end(); it_ss++)
+	map_st::iterator it_st;
+	for(it_st = m_inpath_to_tmp.begin(); it_st != m_inpath_to_tmp.end(); it_st++)
 	{
-		string input_path = it_ss->first;
+		string input_path = it_st->first;
 		string tmp_path;
-		join_path(tmp_path, THREAD_TMP_DIR, it_ss->second);
+		join_path(tmp_path, THREAD_TMP_DIR, it_st->second.tmp_path);
 		get_filename_from_dir(input_path, tmp_path, true);
 	}
 }
@@ -1154,10 +1145,10 @@ int FilterData::create_thread_dir()
 		return -1;
 	}
 
-	map_ss::iterator it;
+	map_st::iterator it;
 	for(it=m_inpath_to_tmp.begin(); it != m_inpath_to_tmp.end(); it++)
 	{
-		join_path(input_tmp, thread_tmp_dir, it->second);
+		join_path(input_tmp, thread_tmp_dir, it->second.tmp_path);
 		if(0 != make_dir(input_tmp))
 		{
 			LOG("Error-> Mkdir tmp_thread error: %s", input_tmp.c_str());
@@ -1182,11 +1173,15 @@ int FilterData::make_all_dir()
 			}
 		}
 
-		if(0 != make_dir(it->backup_path.c_str()))
+		for(size_t i=0; i<it->v_input.size(); i++)
 		{
-			LOG("Error-> Mkdir error: %s", it->backup_path.c_str());
-			return -1;
+			if(0 != make_dir(it->v_input[i].bak_path.c_str()))
+			{
+				LOG("Error-> Mkdir error: %s", it->v_input[i].bak_path.c_str());
+				return -1;
+			}
 		}
+
 	}
 	return 0;
 }

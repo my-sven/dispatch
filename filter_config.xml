@@ -1,86 +1,112 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <system>
-	<base max_thread_num="3"/>
-	
-	<!--input_path: 传入文件目录全路径-->
-	<!--exp_name: 文件后缀名,值为""表示任意后缀名-->
-	<!--key_name: 文件名关键字,值为""表示所有文件-->
-	<!--key_site: 文件名关键字位置,0为任意位置,1为头匹配,2为尾匹配-->
-	<!--output_path: 输出文件目录全路径-->
-	<!--del_size0: 删除大小为零的输出文件,0为不删除,1为删除-->
-	<!--backup_path: 源文件备份路径-->
-	<!--need_head_tail: 0为不需要行首尾行,1为需要首行,2为需要尾行,3为需要首尾行-->
-	<!--split: 文件列的分隔符-->
-	<!--copy: 是否copy文件, 0为不copy根据条件过滤, 1为直接完整copy不经过任何筛选-->
-	<!--direction: 正反方向抽取,0为column和filter都正向,1为column反向,2为filter反向,3为column和filter都反向-->
-	<!--column: 值为需要抽取的列("0,1,2,3", ""表示所有列) 注：当direction为方向时column是不需要抽取的列-->
-	<!--filter: 数据过滤表达式,值为""表示不需要过滤,col[num](expression)：num是列号,expression为过滤表达式-->
-	<!--filter: col[num](expression)可以用 **(与), ||(或) 连接. 如col[num1](exp1)**col[num1](exp1)-->
-	<!--filter-expression:(xxx),($xxx),(xxx$),($xxx$),(=xxx),(!xxx),(>xxx),(<xxx)-->
-	<global>
-		<key key_site="1"/>
-		<input_path path="/home/sven/2016051122" exp_name=".dat,.csc"/>
-		<output_path path="/home/sven/path" del_size0="0" />
-		<backup_path path="/home/sven/backup"/>
-		<mode copy="0" need_head_tail="0" split="," direction="0"/>
-		<field column=""  filter=""/>
-	</global>
+    <base max_thread_num="3"/>
+    
+    <!--input_path: 传入文件目录全路径-->
+    <!--backup_path: 源文件备份路径-->
+    <!--exp_name: 文件后缀名,值为""表示任意后缀名-->
+    <!--key_name: 文件名关键字,值为""表示所有文件-->
+    <!--key_site: 文件名关键字位置,0为任意位置,1为头匹配,2为尾匹配-->
+    <!--output_path: 输出文件目录全路径-->
+    <!--del_size0: 删除大小为零的输出文件,0为不删除,1为删除-->
+    <!--head: 0为正常过滤首行,1、2为需要首行,-1、-2为不需要首行-->
+    <!--tail: 0为正常过滤尾行,1、2为需要尾行,-1、-2为不需要尾行-->
+    <!--split: 文件列的分隔符-->
+    <!--copy: 是否copy文件, 0为不copy根据条件过滤, 1为直接完整copy不经过任何筛选-->
+    <!--direction: 正反方向抽取,0为column和filter都正向,1为column反向,2为filter反向,3为column和filter都反向-->
+    <!--column: 值为需要抽取的列("0,1,2,3", ""表示所有列) 注：当direction为方向时column是不需要抽取的列-->
+    <!--filter: 数据过滤表达式,值为""表示不需要过滤,col[num](expression)：num是列号,expression为过滤表达式-->
+    <!--filter: col[num](expression)可以用 **(与), ||(或) 连接. 如col[num1](exp1)**col[num1](exp1)-->
+    <!--filter-expression:(xxx),($xxx),(xxx$),($xxx$),(=xxx),(!xxx),(>xxx),(<xxx)-->
+    <global>
+        <key key_name="" key_site="1"/>
+        <mode copy="0" head="0" tail="0" split="," direction="0"/>
+        <field column=""  filter=""/>
+        <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
+        <output_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ok" del_size0="0" />
+    </global>
 
-	<file_list>
-	
-		<one_filter>
-			<mode copy="0"/>
-			<key key_name="MME_5Min" key_site="1" />
-			<key key_name="SGW_5Min" key_site="1" />
-			<key key_name="SubService_IP_5Min" key_site="1" />
-			<key key_name="Cell_5Min" key_site="1" />
-			<input_path path="/home/sven/2016061111" exp_name=".dat,.csc"/>
-			<input_path path="/home/sven/2016051122" exp_name=".dat,.csc"/>
-			<output_path path="/home/sven/path/all/doc" />
-			<output_path path="/home/sven/path/all/doc1" />
-			<output_path path="/home/sven/path/all/doc2" />
-			<field column=""  filter=""/>
-		</one_filter>
-		
-		 
-		<one_filter>
-			<key key_name="SGW_5Min" key_site="0" />
-			<input_path path="/home/sven/2016061111" exp_name=".dat,.tmp"/>
-			<input_path path="/home/sven/2016051122" exp_name=".dat,.exe"/>
-			<output_path path="/home/sven/path/SGW_5Min/doc" />
-			<output_path path="/home/sven/path/SGW_5Min/doc1" />
-			<output_path path="/home/sven/path/SGW_5Min/doc2" />
-			<field column="0,1,2,4,5,6,7,8"  filter="col[2](>1000000000)**col[2](<2000000000)"/>
-		</one_filter>
-		
-		
-		<one_filter>
-			<key key_name="MME_5Min" key_site="1" />
-			<input_path path="/home/sven/2016061111" exp_name=".dat,.tmp"/>
-			<input_path path="/home/sven/2016051122" exp_name=".dat,.csc"/>
-			<output_path path="/home/sven/path/MME_5Min/doc3" />
-			<output_path path="/home/sven/path/MME_5Min/doc4" />
-			<output_path path="/home/sven/path/MME_5Min/doc5" />
-			<field column="0,1,2"  filter="col[1](DO$)||col[1](GZ$)"/>
-		</one_filter>
-		
-		<!--
-		<one_filter>
-			<key key_name="MME_5Min" key_site="0" />
-			<input_path path="/home/sven/2016051122" exp_name=".dat,.csc"/>
-			<output_path path="/home/sven/path/MME_5Min/doc3" />
-			<field column="0,1,2,3"  filter="col[1](DO$)||col[1](GZ$)"/>
-		</one_filter>
-		
-		<one_filter>
-			<key key_name="MME_5Min" key_site="0" />
-			<input_path path="/home/sven/2016051122" exp_name=".dat,.csc"/>
-			<output_path path="/home/sven/path/MME_5Min/doc2" />
-			<mode direction="4"/>
-			<field column="0,1,2,4,5,6,7"  filter="col[4](>90.00)"/>
-		</one_filter>
-		 -->	
-		
-	</file_list>
+    <file_list>
+    
+        <one_filter>
+            <mode copy="1"/>
+            <key key_name="" />
+            <field column=""  filter=""/>
+            <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" /> 
+            <output_path path="/opt/se/brd_modules/binall/service/bin_mrf/ldr/impala" del_size0="0" />
+        </one_filter>
+        
+        <one_filter>
+            <mode copy="1"/>
+            <key key_name="Area_2G_5Min" />
+            <key key_name="Area_3G_5Min" />
+            <key key_name="Area_5Min" />
+        <!--<key key_name="Area_Subservice_5Min" /> -->
+            <key key_name="Area_Tac_Brand_2G_5Min" />
+            <key key_name="Area_Tac_Brand_3G_5Min" />
+            <key key_name="Area_Tac_Brand_5Min" />
+            <key key_name="Area_Tac_Type_2G_5Min" />
+            <key key_name="Area_Tac_Type_3G_5Min" />
+            <key key_name="Area_Tac_Type_5Min" />
+            <key key_name="Cell_2G_5Min" />
+            <key key_name="Cell_3G_5Min" />
+            <key key_name="Cell_5Min" />
+            <key key_name="City_5Min" />
+            <key key_name="City_MicroChan_5Min" />
+            <key key_name="MME_5Min" />
+            <key key_name="Prov_5Min" />
+            <key key_name="Prov_MicroChan_5Min" />
+            <key key_name="Service_5Min" />
+            <key key_name="SGW_5Min" />
+        <!--<key key_name="SubService_5Min" />
+            <key key_name="SubService_Ecode_5Min" />
+            <key key_name="SubService_IP_5Min" /> -->
+            <field column=""  filter=""/>
+            <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ok" del_size0="0" /> 
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_1/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_2_new/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_4/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_5/ldr/ok" del_size0="0" /> 
+        </one_filter>
+        
+        <one_filter>
+            <mode copy="0"/>
+            <key key_name="Area_Subservice_5Min" />
+            <field column=""  filter="col[2](!RCS)"/> 
+            <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ok" del_size0="0" /> 
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_1/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_2_new/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_4/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_5/ldr/ok" del_size0="0" /> 
+        </one_filter>
+        
+        <one_filter>
+            <mode copy="0"/>
+            <key key_name="SubService_5Min" />
+            <key key_name="SubService_Ecode_5Min" />
+            <key key_name="SubService_IP_5Min" />
+            <field column=""  filter="col[1](!RCS)"/> 
+            <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ok" del_size0="0" /> 
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_1/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_2_new/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_4/ldr/ok" del_size0="0" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_5/ldr/ok" del_size0="0" />   
+        </one_filter>
+        
+        <!-- bin_mrf_IO config -->
+        <one_filter>
+            <mode copy="0" need_head_tail="3" />
+            <key key_name="" />
+            <field column=""  filter=""/> 
+            <input_path path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/ok" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/tree" />
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_O1/ldr/ok" del_size0="0" /> 
+            <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_2/ldr/ok" del_size0="0" />
+        </one_filter>
+        
+        
+    </file_list>
 </system>

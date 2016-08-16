@@ -27,6 +27,7 @@ int main(int argc, char *argv[])
 	if(ret)
 	{
 		LOG("Error-> Load config file is failed: %s",config_path.c_str());
+		cout<<"Error-> Load config file is failed: "<< config_path <<endl;
 		return -1;
 	}
 	
@@ -34,6 +35,7 @@ int main(int argc, char *argv[])
 	if(ret)
 	{
 		LOG("Error-> Run error: %s",config_path.c_str());
+		cout<<"Error-> Run error: "<< config_path <<endl;
 		return -1;
 	}
 
