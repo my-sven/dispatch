@@ -99,7 +99,7 @@
         
         <!-- bin_mrf_IO config -->
         <one_filter>
-            <mode copy="0" need_head_tail="3" />
+            <mode copy="0" head="-1" tail="-2" />
             <key key_name="" />
             <field column=""  filter=""/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/ok" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/tree" />

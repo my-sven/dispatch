@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <pthread.h>
+#include <math.h>
 
 
 #include <string>
@@ -21,6 +22,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <deque>
 
 using namespace std;
 #include <boost/algorithm/string.hpp>
@@ -110,7 +112,8 @@ typedef struct
 	vector_output	v_output;
 	int				copy;			//copy: 是否copy文件, 0为不copy根据条件过滤, 1为直接完整copy不经过任何筛选
 	string			backup_path;	// 源文件备份路径
-	int				need_head_tail; // 0为不需要行首尾行 1为需要首行 2为需要尾行 3为需要首尾行
+	int				head; 			// 0为正常过滤首行,1、2为需要首行,-1、-2为不需要首行
+	int				tail; 			// 0为正常过滤尾行,1、2为需要尾行,-1、-2为不需要尾行
 	string			split;			// 文件列的分隔符
 	int 			direction;		// 正反方向抽取标识 0为column和filter都正向，1为column反向，2为filter反向，3为column和filter都反向
 	string			column;			// 值为需要抽取的列(0,1,2,3, "" is all) 注：当direction为方向时column是不需要抽取的列

@@ -11,7 +11,8 @@ void FilterData::init_config(Config *data)
 {
 	data->copy = -1;
 	data->split = "";
-	data->need_head_tail = -1;
+	data->head = 0;
+	data->tail = 0;
 	data->direction = -1;
 	data->column = "";
 	data->filter = "";
@@ -122,13 +123,22 @@ void FilterData::get_base_info(TiXmlElement *pElement, Config &p_config)
 				p_config.copy = global_info.copy;
 			}
 			
-			if(pElement->Attribute("need_head_tail"))
+			if(pElement->Attribute("head"))
     		{
-				p_config.need_head_tail = atoi(pElement->Attribute("need_head_tail"));
+				p_config.head = atoi(pElement->Attribute("head"));
     		}
 			else
 			{
-				p_config.need_head_tail = global_info.need_head_tail;
+				p_config.head = global_info.head;
+			}
+
+			if(pElement->Attribute("tail"))
+    		{
+				p_config.tail = atoi(pElement->Attribute("tail"));
+    		}
+			else
+			{
+				p_config.tail = global_info.tail;
 			}
 			
 			if(pElement->Attribute("split"))
@@ -250,11 +260,6 @@ int FilterData::check_config()
 			v_filter[site].copy = global_info.copy;
 		}
 
-		if(v_filter[site].need_head_tail == -1)
-		{
-			v_filter[site].need_head_tail = global_info.need_head_tail;
-		}
-
 		if(!strcmp(v_filter[site].split.c_str(), ""))
 		{
 			v_filter[site].split = global_info.split;
@@ -284,11 +289,6 @@ int FilterData::check_config()
 			return -1;
 		}
 		
-		if(v_filter[site].need_head_tail<0 || v_filter[site].need_head_tail>3)
-		{
-			LOG("Error-> Invalid need_head_tail: %d range(0,3)", v_filter[site].need_head_tail);
-			return -1;
-		}
 
 		if(v_filter[site].direction<0 || v_filter[site].direction>3)
 		{
@@ -909,22 +909,41 @@ int FilterData::process_files(
 			return -1;
 		}
 
-		// need_head_tail为1,3时 保留第一行数据
-		if(1==p_config->need_head_tail || 3==p_config->need_head_tail)
+		// head不等于0时 保留或去掉前n行数据
+		if(0 != p_config->head)
 		{
-			getline(fread, str_read_line);
-			fout<< str_read_line <<endl;
+			int line_num = abs(p_config->head);
+			for(int i=0; i<line_num && !fread.eof(); i++)
+			{
+				getline(fread, str_read_line);
+				if(0 < p_config->head)
+				{
+					fout<< str_read_line <<endl;
+				}
+			}
 		}
+		
+		deque<string> tail_deque; //尾队列
+		
 		// 循环处理文件里的每一行数据
 		while(!fread.eof())
 		{
 			getline(fread, str_read_line);
-			if(fread.eof())
+			
+			// tail不等于0时 保留或去掉最后n行数据
+			if(0 != p_config->tail)
 			{
-				if(2==p_config->need_head_tail || 3==p_config->need_head_tail)
+				int line_num = abs(p_config->tail);
+				if(tail_deque.size() < line_num)
 				{
-					fout<< str_read_line <<endl;
+					tail_deque.push_back(str_read_line);
 					continue;
+				}
+				else if(tail_deque.size() == line_num)
+				{
+					tail_deque.push_back(str_read_line);
+					str_read_line = tail_deque.front();
+					tail_deque.pop_front();
 				}
 			}
 
@@ -960,6 +979,17 @@ int FilterData::process_files(
 				fout<< boost::join(v_out_str, p_config->split) <<endl;
 			}
 		}
+
+		while(0 != tail_deque.size())
+		{
+			str_read_line = tail_deque.front();
+			tail_deque.pop_front();
+			if(0 < p_config->tail)
+			{
+				fout<< str_read_line <<endl;
+			}
+		}
+
 		
 		if(fread.is_open())
 		{
