@@ -102,7 +102,7 @@
             <mode copy="0"/>
             <key key_name="MME_5Min" />
             <key key_name="SGW_5Min" />
-            <field column=""  filter="col[1](SHZ$)"/> 
+            <field column=""  filter="col[1](SZH$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
             <output_path path="/xdata0/sz" del_size0="0" />   
         </one_filter>
