@@ -726,6 +726,7 @@ int FilterData::get_filename_from_dir(
 		if(lstat(full_name.c_str(), &buf) < 0) 
 		{
 			LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+			continue;
 		}
 		
 		if(S_ISDIR(buf.st_mode)) 
@@ -765,14 +766,21 @@ int FilterData::make_dir(string dir_path)
 {
 	size_t pos;
 	string par_dir_path;
+	if(0 == dir_path.size())
+	{
+		return 0;
+	}
 	if(0 != access(dir_path.c_str(), 0))
 	{
 		boost::trim_right_if(dir_path, boost::is_any_of("/ "));
 		pos = dir_path.find_last_of("/");
 		par_dir_path = dir_path.substr(0, pos);
-		if(0 != make_dir(par_dir_path))
+		if(0 != pos)
 		{
-			return -1;
+			if(0 != make_dir(par_dir_path))
+			{
+				return -1;
+			}
 		}
 		if(0 != mkdir(dir_path.c_str(), 0777))
 		{
@@ -1216,9 +1224,16 @@ int FilterData::make_all_dir()
 	return 0;
 }
 
-int FilterData::run()
+int FilterData::run(string config_path)
 {
 	int ret = -1;
+
+	ret = load_config_info(config_path);
+	if(ret)
+	{
+		LOG("Error-> Load config file is failed: %s",config_path.c_str());
+		return -1;
+	}
 
 	if(0 != make_all_dir()) // 创建所有输出目录，避免子线程创建冲突
 	{
@@ -1241,7 +1256,7 @@ int FilterData::run()
 		ret = pthread_create(&th_id, NULL, filter_thread, (void*)&thread_arg);
 		if(0 != ret)
 		{
-			LOG("Error-> create thread error: %s", strerror(errno));
+			LOG("Error-> create thread error: %s", strerror(ret));
 			continue;
 		}
 		v_thread_id.push_back(th_id);
@@ -1266,6 +1281,10 @@ void *filter_thread(void *arg)
 	FilterData *p_fd = p_th_arg->p_fd;
 	size_t thread_num = p_th_arg->thread_num;
 
+	char thread_name[16]={0};
+	sprintf(thread_name, "filter_thread%d", thread_num);
+	prctl(PR_SET_NAME, thread_name);
+	
 	p_fd->analysis_config(thread_num);
 	
 }

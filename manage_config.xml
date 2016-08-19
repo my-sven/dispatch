@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<system>
+    <manage path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/tree" time="7d" />
+    <manage path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" time="7d" />
+    <manage path="/xdata0/sz" time="7d" />
+    <manage path="/xdata0/gz" time="7d" />
+    <manage path="/xdata0/zh" time="7d" />
+    <manage path="/xdata0/jm" time="7d" />
+    <manage path="/xdata0/fs" time="7d" />
+</system>

@@ -24,6 +24,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <dirent.h>
+#include <sys/prctl.h>
+
 
 #include "CPosixMutex.h"
 
@@ -48,7 +50,7 @@ public:
 
 	int get_filename_from_dir(map_si &m_log_file, string input_path);
  	string join_path(string &dest_path, string src_path, string add_path);
-	void get_new_name(string &dest_name, string src_name, int num);
+	void get_new_name(string &dest_name, string src_name);
 	int rename_file(string src_name, string dest_name);
 	void check_log_state();
 	void run();
