@@ -92,12 +92,7 @@ int SysLog::get_filename_from_dir(
 		{
 			continue;
 		}
-		if(boost::ends_with(file_name, ".tmp"))
-		{
-			continue;
-		}
-		
-		m_log_file.insert(pair<string, int>(file_name,1));
+		m_log_file.insert(make_pair(file_name,1));
 	}
 	closedir(dirptr);
 	  
@@ -117,23 +112,19 @@ string SysLog::join_path(
 }
 
 
-void SysLog::get_new_name(string &dest_name, string src_name, int num)
+void SysLog::get_new_name(string &dest_name, string src_name)
 {
  	string tmp_name = src_name.substr(0, src_name.find_last_of('.'));
-	stringstream ss;
-	string str;
-	ss<<num;
-	ss>>str;
-	if(num<10 && num>0)
-	{
-		tmp_name += "00";
-	}
-	else if(num<100 && num>=10)
-	{
-		tmp_name += "0";
-	}
-	tmp_name += str;
-	dest_name = tmp_name + ".log";
+	time_t tt;
+	time(&tt);
+	struct tm *t;
+	t=localtime(&tt);
+	char buf[32]={0};
+	
+	sprintf(buf, "%s_%4d%02d%02d%02d%02d%02d.log", tmp_name.c_str(), 
+		t->tm_year+1900, t->tm_mon+1, t->tm_mday,
+		t->tm_hour, t->tm_min,t->tm_sec);
+	dest_name = buf;
 }
 
 int SysLog::rename_file(string src_name, string dest_name)
@@ -172,61 +163,47 @@ void SysLog::check_log_state()
 		{
 			if(f_stat.st_size > log_size)
 			{
-				map_si m_log_file;
-				get_filename_from_dir(m_log_file, log_path);
-				int size = m_log_file.size();
-				map_si::reverse_iterator it_lf;
-				for(it_lf = m_log_file.rbegin(); it_lf != m_log_file.rend(); it_lf++)
-				{
-					if (0 == log_name.compare(it_lf->first))
-					{
-						string new_name;
-						get_new_name(new_name, log_name, 1);
-						string tmp_path_name;
-						join_path(tmp_path_name, log_path,new_name);
-						mutex.Lock();
-						fwrite.close();
-						rename_file(log_path_name, tmp_path_name);
-						open_log_file(log_path_name);
-						mutex.Unlock();
-					}
-					else
-					{
-						string new_name;
-						get_new_name(new_name, log_name, size);
-						string old_path_name;
-						join_path(old_path_name, log_path,it_lf->first);
-						string new_path_name;
-						join_path(new_path_name, log_path,new_name);
-						
-						struct stat tmp_stat;
-						ret = stat(old_path_name.c_str(),&tmp_stat);
-						if(0 != ret)
-						{
-							size--;
-							continue;
-						}
-						time_t timep;
-						time(&timep);
-						
-						if(ret == 0 && (timep - tmp_stat.st_mtime) > log_time)
-						{
-							remove(old_path_name.c_str());
-							size--;
-						}
-						else
-						{
-							rename_file(old_path_name, new_path_name);
-							size--;
-						}
-					}
-				}
+				string new_name;
+				get_new_name(new_name, log_name);
+				
+				string tmp_path_name;
+				join_path(tmp_path_name, log_path,new_name);
+				mutex.Lock();
+				fwrite.close();
+				rename_file(log_path_name, tmp_path_name);
+				open_log_file(log_path_name);
+				mutex.Unlock();
 			}
 		}
 		else
 		{
 			LOG("Error-> get %s stat error: %s", log_path_name.c_str(), strerror(errno));
 		}
+
+		map_si m_log_file;
+		get_filename_from_dir(m_log_file, log_path);
+		map_si::reverse_iterator it_lf;
+		for(it_lf = m_log_file.rbegin(); it_lf != m_log_file.rend(); it_lf++)
+		{
+			if (0 == log_name.compare(it_lf->first))
+			{
+				continue;
+			}
+			
+			struct stat ss;
+			time_t tt;
+			time(&tt);
+
+			string old_path_name;
+			join_path(old_path_name, log_path,it_lf->first);
+			ret = stat(old_path_name.c_str(),&ss);
+			if(ret == 0 && (tt > ss.st_mtime+log_time))
+			{
+				remove(old_path_name.c_str());
+			}
+		}
+		m_log_file.clear();
+		
 		sleep(CHECK_TIME_M);
 	}
 }
@@ -238,7 +215,7 @@ void SysLog::run()
 	ret = pthread_create(&th_id, NULL, log_thread, (void*)this);
 	if(0 != ret)
 	{
-		LOG("Error-> create thread error: %s", strerror(errno));
+		LOG("Error-> create thread error: %s", strerror(ret));
 	}
 }
 
@@ -246,6 +223,7 @@ void *log_thread(void* arg)
 {
 	pthread_detach(pthread_self());
 	
+	prctl(PR_SET_NAME, "log_thread");
 	SysLog *p_log = (SysLog *)arg;
 	p_log->check_log_state();
 }

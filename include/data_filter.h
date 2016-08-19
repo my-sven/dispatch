@@ -14,6 +14,8 @@
 #include <errno.h>
 #include <pthread.h>
 #include <math.h>
+#include <sys/prctl.h>
+
 
 
 #include <string>
@@ -266,7 +268,7 @@ public:
 
 	void str_add_int(string &dest, int num);
 
-	int run();
+	int run(string config_path);
 
 private:
 	int max_thread_num;
