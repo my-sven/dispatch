@@ -16,25 +16,32 @@ int FileManage::load_config_info(string file_name)
 	TiXmlElement *pElement = pRoot->FirstChildElement();
     TiXmlElement *pSubElement;
 
-	string path="";
+	string src_path="";
+	string dest_path="";
 	string temp="";
-	int time=0;
+	int keep_time=0;
 
 	while(pElement)
     {
-    	path="";
-		time=0;
+    	src_path="";
+		dest_path="";
+		keep_time=0;
 		
     	if(!strcmp(pElement->Value(), "manage")) 
         {
-        	if(pElement->Attribute("path"))
+        	if(pElement->Attribute("src_path"))
     		{
-    			path = pElement->Attribute("path");
+    			src_path = pElement->Attribute("src_path");
     		}
 
-			if(pElement->Attribute("time"))
+			if(pElement->Attribute("dest_path"))
     		{
-    			temp = pElement->Attribute("time");
+    			dest_path = pElement->Attribute("dest_path");
+    		}
+
+			if(pElement->Attribute("keep_time"))
+    		{
+    			temp = pElement->Attribute("keep_time");
     		}
 
 			string t_str;
@@ -43,36 +50,42 @@ int FileManage::load_config_info(string file_name)
 			{
 			case 'm':
 			case 'M':
-				time = TIME_M*(atoi(t_str.c_str()));
+				keep_time = TIME_M*(atoi(t_str.c_str()));
 				break;
 			case 'h':
 			case 'H':
-				time = TIME_H*(atoi(t_str.c_str()));
+				keep_time = TIME_H*(atoi(t_str.c_str()));
 				break;
 			case 'd':
 			case 'D':
-				time = TIME_D*(atoi(t_str.c_str()));
+				keep_time = TIME_D*(atoi(t_str.c_str()));
 				break;
 			default:
 				LOG("Error-> config unit of time error: %s", temp.c_str());
 				return -1;
 			}
 			
-			boost::trim_right_if(path, boost::is_any_of("/ "));
-			if(0 != path.size() && 0 != time)
+			boost::trim_right_if(src_path, boost::is_any_of("/ "));
+			boost::trim_right_if(dest_path, boost::is_any_of("/ "));
+			if(0 != src_path.size() && 0 != dest_path.size() && 0 != keep_time)
 			{
-				m_manage.insert(make_pair(path, time));
+				ManageDir md;
+				md.src_path = src_path;
+				md.dest_path = dest_path;
+				md.keep_time = keep_time;
+				v_manage.push_back(md);
 			}
 			else
 			{
-				LOG("Warning-> Invalid config path:%s time:%d", path.c_str(),temp.c_str() );
+				LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
+					src_path.c_str(), dest_path.c_str(), temp.c_str() );
 			}
         }
 
         pElement = pElement->NextSiblingElement();
     }
 
-	if(m_manage.empty())
+	if(v_manage.empty())
 	{
 		LOG("Warning-> config is null !");
 		return -1;
@@ -224,7 +237,64 @@ int FileManage::get_dir_from_name(string &dir, string file_name)
 }
 
 
-int FileManage::back_and_check(string path, int i_time)
+int FileManage::back_file_to_dir(string src_path, string dest_path)
+{
+	DIR *dirptr = NULL;  
+	struct dirent *entry;
+	string file_name;
+	if((dirptr = opendir(src_path.c_str())) == NULL)	
+	{  
+		LOG("Warning-> Open dir fault: %s %s", src_path.c_str(), strerror(errno));
+		return -1;
+	}
+	
+	while (entry = readdir(dirptr))  
+	{  
+		file_name = entry->d_name;
+		boost::trim_if(file_name, boost::is_any_of(" \n\r"));
+		
+		if(!strcmp(file_name.c_str(), ".") || !strcmp(file_name.c_str(), ".."))
+		{
+			continue;
+		}
+		if(boost::ends_with(file_name, ".tmp"))
+		{
+			continue;
+		}
+		
+		struct stat s_stat;
+		string full_name;
+		join_path(full_name, src_path, file_name);
+		
+		if(lstat(full_name.c_str(), &s_stat) < 0) 
+		{
+			LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+			continue;
+		}
+
+		if(S_ISREG(s_stat.st_mode)) 
+		{
+			string new_dir="";
+			string new_path;
+			string new_name;
+		//	get_dir_from_time(new_dir, s_stat.st_mtime);
+			if(0 != get_dir_from_name(new_dir, file_name))
+			{
+				continue;
+			}
+			join_path(new_path, dest_path, new_dir);
+			join_path(new_name, new_path, file_name);
+			make_dir(new_path);
+			rename_file(full_name, new_name);
+		}
+		
+	}
+	closedir(dirptr);
+	  
+	return 0;  
+}
+
+int FileManage::check_dir_time(string path, int keep_time)
 {
 	DIR *dirptr = NULL;  
 	struct dirent *entry;
@@ -259,26 +329,11 @@ int FileManage::back_and_check(string path, int i_time)
 			continue;
 		}
 
-		if(S_ISREG(s_stat.st_mode)) 
-		{
-			string new_dir="";
-			string new_path;
-			string new_name;
-		//	get_dir_from_time(new_dir, s_stat.st_mtime);
-			if(0 != get_dir_from_name(new_dir, file_name))
-			{
-				continue;
-			}
-			join_path(new_path, path, new_dir);
-			join_path(new_name, new_path, file_name);
-			make_dir(new_path);
-			rename_file(full_name, new_name);
-		}
-		else if(S_ISDIR(s_stat.st_mode)) 
+		if(S_ISDIR(s_stat.st_mode)) 
 		{
 			time_t tt;
 			time(&tt);
-			if(tt > s_stat.st_mtime+i_time)
+			if(tt > s_stat.st_mtime+keep_time)
 			{
 				remove_dir(full_name);
 			/*	char cmd_rm[256]={0};
@@ -296,18 +351,29 @@ int FileManage::back_and_check(string path, int i_time)
 }
 
 
+int FileManage::manage_file()
+{
+	vector_md::iterator it;
+	while(1)
+	{
+		for(it = v_manage.begin(); it != v_manage.end(); it++)
+		{
+			back_file_to_dir(it->src_path, it->dest_path);
+		}
+		sleep(3);
+	}
+}
 
 int FileManage::manage_dir()
 {
-	map_si::iterator it;
+	vector_md::iterator it;
 	while(1)
 	{
-		for(it = m_manage.begin(); it != m_manage.end(); it++)
+		for(it = v_manage.begin(); it != v_manage.end(); it++)
 		{
-			back_and_check(it->first, it->second);
+			check_dir_time(it->dest_path, it->keep_time);
 		}
-
-		sleep(5);
+		sleep(60);
 	}
 }
 
@@ -320,8 +386,16 @@ int FileManage::run()
 		return -1;
 	}
 	
-	pthread_t th_id;
-	ret = pthread_create(&th_id, NULL, manage_thread, (void*)this);
+	pthread_t th_id1;
+	ret = pthread_create(&th_id1, NULL, manage_file_thread, (void*)this);
+	if(0 != ret)
+	{
+		LOG("Error-> create thread error: %s", strerror(ret));
+		return -1;
+	}
+
+	pthread_t th_id2;
+	ret = pthread_create(&th_id2, NULL, manage_dir_thread, (void*)this);
 	if(0 != ret)
 	{
 		LOG("Error-> create thread error: %s", strerror(ret));
@@ -331,12 +405,20 @@ int FileManage::run()
 	return 0;
 }
 
-
-void *manage_thread(void* arg)
+void *manage_file_thread(void* arg)
 {
 	pthread_detach(pthread_self());
 
-	prctl(PR_SET_NAME, "manage_thread");
+	prctl(PR_SET_NAME, "manage_file_thread");
+	FileManage *p_fm = (FileManage *)arg;
+	p_fm->manage_file();
+}
+
+void *manage_dir_thread(void* arg)
+{
+	pthread_detach(pthread_self());
+
+	prctl(PR_SET_NAME, "manage_dir_thread");
 	FileManage *p_fm = (FileManage *)arg;
 	p_fm->manage_dir();
 }

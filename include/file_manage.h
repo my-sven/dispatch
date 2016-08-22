@@ -35,8 +35,15 @@ using namespace std;
 #define TIME_H		3600		// 文件保留时间 小时为单位
 #define TIME_D		86400		// 文件保留时间 天为单位
 
+typedef struct _ManageDir
+{	
+	string src_path;
+	string dest_path;
+	int keep_time;
+}
+ManageDir;
 
-typedef map<string, int> map_si;
+typedef vector<ManageDir> vector_md;
 
 class FileManage
 {
@@ -52,16 +59,21 @@ public:
 	int remove_dir(string dir_path);
 	int get_dir_from_time(string &dir, time_t tt);
 	int get_dir_from_name(string &dir, string file_name);
-	int back_and_check(string path, int i_time);
+	int back_file_to_dir(string src_path, string dest_path);
+	int check_dir_time(string path, int keep_time);
+	
+	int manage_file();
 	int manage_dir();
 
 
 private:
-	map_si m_manage;
+	vector_md v_manage;
 };
 
 
-void *manage_thread(void* arg);
+void *manage_file_thread(void* arg);
+void *manage_dir_thread(void* arg);
+
 
 
 

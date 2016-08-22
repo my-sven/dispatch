@@ -104,14 +104,14 @@
             <key key_name="SGW_5Min" />
             <field column=""  filter="col[1](SZH$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/sz" del_size0="0" />   
+            <output_path path="/xdata0/sz_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="0"/>
             <key key_name="City_5Min" />
             <field column=""  filter="col[1](深圳)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/sz" del_size0="0" />   
+            <output_path path="/xdata0/sz_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="1"/>
@@ -120,7 +120,7 @@
             <key key_name="Cell_5Min" />
             <field column=""  filter=""/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/sz" del_size0="0" />   
+            <output_path path="/xdata0/sz_ss" del_size0="0" />   
         </one_filter>
         
         <!-- 地市实时指标分发 广州 config -->
@@ -130,14 +130,14 @@
             <key key_name="SGW_5Min" />
             <field column=""  filter="col[1](GZ$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/gz" del_size0="0" />   
+            <output_path path="/xdata0/gz_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="0"/>
             <key key_name="City_5Min" />
             <field column=""  filter="col[1](广州)||col[1](清远)||col[1](韶关)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/gz" del_size0="0" />   
+            <output_path path="/xdata0/gz_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="1"/>
@@ -148,7 +148,7 @@
             <key key_name="Area_Subservice_5Min" />
             <field column=""  filter=""/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/gz" del_size0="0" />   
+            <output_path path="/xdata0/gz_ss" del_size0="0" />   
         </one_filter>
         
         <!-- 地市实时指标分发 珠海 config -->
@@ -157,14 +157,14 @@
             <key key_name="SGW_5Min" />
             <field column=""  filter="col[1](FOS$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/zh" del_size0="0" />   
+            <output_path path="/xdata0/zh_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="0"/>
             <key key_name="City_5Min" />
             <field column=""  filter="col[1](珠海)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/zh" del_size0="0" />   
+            <output_path path="/xdata0/zh_ss" del_size0="0" />   
         </one_filter>
         
         <!-- 地市实时指标分发 江门 config -->
@@ -174,14 +174,14 @@
             <key key_name="SGW_5Min" />
             <field column=""  filter="col[1](JIM$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/jm" del_size0="0" />   
+            <output_path path="/xdata0/jm_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="0"/>
             <key key_name="City_5Min" />
             <field column=""  filter="col[1](江门)||col[1](阳江)||col[1](肇庆)||col[1](云浮)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/jm" del_size0="0" />   
+            <output_path path="/xdata0/jm_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="1"/>
@@ -189,7 +189,7 @@
             <key key_name="Service_5Min" />
             <field column=""  filter=""/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/jm" del_size0="0" />   
+            <output_path path="/xdata0/jm_ss" del_size0="0" />   
         </one_filter>
         
         <!-- 地市实时指标分发 佛山 config -->
@@ -199,14 +199,14 @@
             <key key_name="SGW_5Min" />
             <field column=""  filter="col[1](FOS$)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/fs" del_size0="0" />   
+            <output_path path="/xdata0/fs_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="0"/>
             <key key_name="City_5Min" />
             <field column=""  filter="col[1](佛山)||col[1](中山)||col[1](珠海)"/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/fs" del_size0="0" />   
+            <output_path path="/xdata0/fs_ss" del_size0="0" />   
         </one_filter>
         <one_filter>
             <mode copy="1"/>
@@ -214,7 +214,7 @@
             <key key_name="Cell_5Min" />
             <field column=""  filter=""/> 
             <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/ftp" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" />
-            <output_path path="/xdata0/fs" del_size0="0" />   
+            <output_path path="/xdata0/fs_ss" del_size0="0" />   
         </one_filter>
         
         
