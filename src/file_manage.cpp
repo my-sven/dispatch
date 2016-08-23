@@ -257,7 +257,7 @@ int FileManage::back_file_to_dir(string src_path, string dest_path)
 		{
 			continue;
 		}
-		if(boost::ends_with(file_name, ".tmp"))
+		if(boost::ends_with(file_name, ".tmp") || boost::starts_with(file_name, "."))
 		{
 			continue;
 		}
@@ -314,7 +314,7 @@ int FileManage::check_dir_time(string path, int keep_time)
 		{
 			continue;
 		}
-		if(boost::ends_with(file_name, ".tmp"))
+		if(boost::ends_with(file_name, ".tmp") || boost::starts_with(file_name, "."))
 		{
 			continue;
 		}

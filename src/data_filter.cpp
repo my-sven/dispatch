@@ -887,10 +887,14 @@ int FilterData::process_files(
 		string backup_name;
 
 		make_dir(out_path); // 判断输出路径是否存在，并创建
+		
+		string temp_path;
+		join_path(temp_path, out_path, "tmp");
+		make_dir(temp_path);
 
 		join_path(output_name, out_path, file_name);
 		join_path(backup_name, p_config->backup_path, file_name);
-		temp_name = output_name;
+		join_path(temp_name, temp_path, file_name);
 		temp_name += ".tmp";
 
 		if(p_config->copy) // copy为 1 时完全复制文件
