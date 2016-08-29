@@ -356,7 +356,8 @@ int FilterData::check_config()
 			
 			if(v_filter[site].v_key[j].key_site<0 || v_filter[site].v_key[j].key_site>2)
 			{
-				LOG("Error-> Invalid key_site: %d range(0,1)", v_filter[site].v_key[j].key_site);
+				LOG("Error-> Invalid key_site: %d range(0,1)", 
+					v_filter[site].v_key[j].key_site);
 				return -1;
 			}
 
@@ -390,8 +391,9 @@ int FilterData::get_filter_map()
 					{
 						for(size_t out=0; out<v_filter[fil].v_output.size(); out++)
 						{
-							it_im->second.insert(
-								pair<Output, Config>(v_filter[fil].v_output[out], v_filter[fil]));
+							it_im->second.insert(pair<Output, Config>(
+													v_filter[fil].v_output[out], 
+													v_filter[fil]));
 						}
 					}
 					else
@@ -399,9 +401,12 @@ int FilterData::get_filter_map()
 						map_oc m_oc;
 						for(size_t out=0; out<v_filter[fil].v_output.size(); out++)
 						{
-							m_oc.insert(pair<Output, Config>(v_filter[fil].v_output[out], v_filter[fil]));
+							m_oc.insert(pair<Output, Config>(
+										v_filter[fil].v_output[out], 
+										v_filter[fil]));
 						}
-						it->second.insert(pair<Input, map_oc>(v_filter[fil].v_input[in], m_oc));
+						it->second.insert(pair<Input, map_oc>(
+										v_filter[fil].v_input[in], m_oc));
 					}
 				}
 			}
@@ -413,11 +418,14 @@ int FilterData::get_filter_map()
 				{
 					for(size_t out=0; out<v_filter[fil].v_output.size(); out++)
 					{
-						m_oc.insert(pair<Output, Config>(v_filter[fil].v_output[out], v_filter[fil]));
+						m_oc.insert(pair<Output, Config>(
+									v_filter[fil].v_output[out], v_filter[fil]));
 					}
-					m_im.insert(pair<Input, map_oc>(v_filter[fil].v_input[in], m_oc));
+					m_im.insert(pair<Input, map_oc>(
+									v_filter[fil].v_input[in], m_oc));
 				}
-				m_filter.insert(pair<Key, map_im>(v_filter[fil].v_key[key], m_im));
+				m_filter.insert(pair<Key, map_im>(
+									v_filter[fil].v_key[key], m_im));
 			}
 
 		}
@@ -551,13 +559,18 @@ bool FilterData::condition_analysis(string item, string filter)
 }
 
 
-bool FilterData::field_filter_data(vector_str v_str, string filter, bool &fil_spill_flag)
+bool FilterData::field_filter_data(
+	vector_str v_str, 
+	string filter, 
+	bool &fil_spill_flag)
 {
 	vector_str v_filter_data;
 	bool ret = false;
 	int column = 0;
 	
-	boost::split(v_filter_data, filter, boost::is_any_of("[]()"), boost::token_compress_on);
+	boost::split(v_filter_data, filter,
+				boost::is_any_of("[]()"), 
+				boost::token_compress_on);
 	
 	if(v_filter_data.size() < 3)
 	{
@@ -595,12 +608,17 @@ bool FilterData::field_filter_data(vector_str v_str, string filter, bool &fil_sp
 	return ret;
 }
 
-bool FilterData::field_filter_and(vector_str v_str, string filter, bool &fil_spill_flag)
+bool FilterData::field_filter_and(
+	vector_str v_str, 
+	string filter, 
+	bool &fil_spill_flag)
 {
 	vector_str v_filter_and;
 	bool ret = false;
 	
-	boost::split(v_filter_and, filter, boost::is_any_of("**"), boost::token_compress_on);
+	boost::split(v_filter_and, filter, 
+				boost::is_any_of("**"), 
+				boost::token_compress_on);
 	
 	for(size_t i=0; i<v_filter_and.size(); i++)
 	{
@@ -616,7 +634,10 @@ bool FilterData::field_filter_and(vector_str v_str, string filter, bool &fil_spi
 	return ret;
 }
 
-bool FilterData::field_filter_or(vector_str v_str, string filter, bool &fil_spill_flag)
+bool FilterData::field_filter_or(
+	vector_str v_str, 
+	string filter, 
+	bool &fil_spill_flag)
 {
 	vector_str v_filter_or;
 	bool ret = false;
@@ -626,7 +647,9 @@ bool FilterData::field_filter_or(vector_str v_str, string filter, bool &fil_spil
 		return true;
 	}
 	
-	boost::split(v_filter_or, filter, boost::is_any_of("||"), boost::token_compress_on);
+	boost::split(v_filter_or, filter, 
+				boost::is_any_of("||"), 
+				boost::token_compress_on);
 	
 	for(size_t i=0; i<v_filter_or.size(); i++)
 	{
@@ -745,7 +768,8 @@ int FilterData::get_filename_from_dir(
 			{
 				string tmp_path;
 				string tmp_name;
-				join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(src_path)->second.tmp_path);
+				join_path(tmp_path, THREAD_TMP_DIR, 
+						m_inpath_to_tmp.find(src_path)->second.tmp_path);
 				make_dir(tmp_path);
 				join_path(tmp_name, tmp_path, file_name);
 				rename_file(full_name, tmp_name);
@@ -811,7 +835,8 @@ int FilterData::rename_file(string src_name, string dest_name)
 	{
 		if(0 != access(src_name.c_str(), 0))
 		{
-			LOG("Error-> dir or file is not exist: %s", src_name.c_str(), strerror(errno));
+			LOG("Error-> dir or file is not exist: %s", 
+				src_name.c_str(), strerror(errno));
 			return -1;
 		}
 		
@@ -820,7 +845,8 @@ int FilterData::rename_file(string src_name, string dest_name)
 		
 		if(0 != rename(src_name.c_str(), dest_name.c_str()))
 		{
-			LOG("Error-> move %s to %s error: %s", src_name.c_str(),dest_name.c_str(), strerror(errno));
+			LOG("Error-> move %s to %s error: %s", 
+				src_name.c_str(),dest_name.c_str(), strerror(errno));
 			return -1;
 		}
 	}
@@ -968,7 +994,9 @@ int FilterData::process_files(
 			vector_str v_str;
 			vector_str v_out_str;
 			
-			boost::split(v_str, str_read_line, boost::is_any_of( p_config->split.c_str()), boost::token_compress_on);
+			boost::split(v_str, str_read_line, 
+						boost::is_any_of( p_config->split.c_str()), 
+						boost::token_compress_on);
 
 			// GET过滤条件真假
 			filter_flag = field_filter_or(v_str, p_config->filter, fil_spill_flag);
@@ -982,7 +1010,8 @@ int FilterData::process_files(
 			if(filter_flag) // 判断过滤条件真假 真就写入文件
 			{
 				// 抽取需要输出的列
-				ret = get_out_vector(v_out_str, v_str, v_column, p_config->direction, col_spill_flag);
+				ret = get_out_vector(v_out_str, v_str, v_column, 
+									p_config->direction, col_spill_flag);
 				if(0 != ret)
 				{
 					col_spill_flag = false;
@@ -1015,14 +1044,16 @@ int FilterData::process_files(
 		struct stat fs;
 		if(0 != stat(temp_name.c_str(),&fs)) // 获取文件状态
 		{
-			LOG("Error-> Get file stat error: %s %s", temp_name.c_str(), strerror(errno));
+			LOG("Error-> Get file stat error: %s %s", 
+				temp_name.c_str(), strerror(errno));
 		}
 
 		if(0 == fs.st_size && 1 == del_size0) // 判断文件大小，并判断文件为零时是否删除
 		{
 			if(0 != remove(temp_name.c_str())) // 为零且del_size0为真 删除该文件
 			{
-				LOG("Error-> rename error: %s %s", temp_name.c_str(), strerror(errno));
+				LOG("Error-> rename error: %s %s", 
+					temp_name.c_str(), strerror(errno));
 			}
 		}
 		else
@@ -1064,7 +1095,8 @@ void FilterData::analysis_config(size_t thread_num)
 
 			string tmp_path;
 			string tmp_name;
-			join_path(tmp_path, THREAD_TMP_DIR, m_inpath_to_tmp.find(path_name)->second.tmp_path);
+			join_path(tmp_path, THREAD_TMP_DIR, 
+						m_inpath_to_tmp.find(path_name)->second.tmp_path);
 			join_path(tmp_name, tmp_path, file_name);
 
 			map_km::iterator it_km;

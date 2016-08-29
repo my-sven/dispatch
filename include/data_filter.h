@@ -241,17 +241,20 @@ public:
 	/*******************************************
     * @brief : or条件筛选
     *******************************************/
-	bool field_filter_or(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_or(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 	
 	/*******************************************
     * @brief : and条件筛选
     *******************************************/
-	bool field_filter_and(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_and(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 	
 	/*******************************************
     * @brief : 单个条件分解
     *******************************************/
-	bool field_filter_data(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_data(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 
 	/*******************************************
     * @brief : 具体条件比较

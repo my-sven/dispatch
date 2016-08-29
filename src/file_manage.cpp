@@ -144,7 +144,8 @@ int FileManage::rename_file(string src_name, string dest_name)
 	{
 		if(0 != access(src_name.c_str(), 0))
 		{
-			LOG("Error-> dir or file is not exist: %s", src_name.c_str(), strerror(errno));
+			LOG("Error-> dir or file is not exist: %s", 
+				src_name.c_str(), strerror(errno));
 			return -1;
 		}
 		
@@ -153,7 +154,8 @@ int FileManage::rename_file(string src_name, string dest_name)
 		
 		if(0 != rename(src_name.c_str(), dest_name.c_str()))
 		{
-			LOG("Error-> move %s to %s error: %s", src_name.c_str(),dest_name.c_str(), strerror(errno));
+			LOG("Error-> move %s to %s error: %s", 
+				src_name.c_str(),dest_name.c_str(), strerror(errno));
 			return -1;
 		}
 	}
@@ -214,7 +216,8 @@ int FileManage::get_dir_from_time(string &dir, time_t tt)
 	t=localtime(&tt);
 	char buf[16]={0};
 	
-	sprintf(buf, "%4d%02d%02d%02d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour);
+	sprintf(buf, "%4d%02d%02d%02d", t->tm_year+1900, 
+			t->tm_mon+1, t->tm_mday, t->tm_hour);
 	dir = buf;
 	return 0;
 }
@@ -229,7 +232,7 @@ int FileManage::get_dir_from_name(string &dir, string file_name)
 	tmp = tmp.substr(pos+1);
 	if(tmp.size() < 10)
 	{
-		LOG("Error-> file name time format error: %s",file_name.c_str());
+		LOG("Warning-> file name time format error: %s",file_name.c_str());
 		return -1;
 	}
 	dir = tmp.substr(0, 10);
