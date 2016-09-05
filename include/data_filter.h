@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include <math.h>
 #include <sys/prctl.h>
+#include <fcntl.h>
+
 
 
 
@@ -111,7 +113,7 @@ typedef struct
 {
 	vector_key		v_key;
 	vector_input	v_input;
-	vector_output	v_output;
+	vector_output 	v_output;
 	int				copy;			//copy: 是否copy文件, 0为不copy根据条件过滤, 1为直接完整copy不经过任何筛选
 	string			backup_path;	// 源文件备份路径
 	int				head; 			// 0为正常过滤首行,1、2为需要首行,-1、-2为不需要首行
@@ -241,17 +243,20 @@ public:
 	/*******************************************
     * @brief : or条件筛选
     *******************************************/
-	bool field_filter_or(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_or(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 	
 	/*******************************************
     * @brief : and条件筛选
     *******************************************/
-	bool field_filter_and(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_and(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 	
 	/*******************************************
     * @brief : 单个条件分解
     *******************************************/
-	bool field_filter_data(vector_str v_str, string filter, bool &fil_spill_flag);
+	bool field_filter_data(vector_str v_str, 
+								string filter, bool &fil_spill_flag);
 
 	/*******************************************
     * @brief : 具体条件比较

@@ -177,7 +177,8 @@ void SysLog::check_log_state()
 		}
 		else
 		{
-			LOG("Error-> get %s stat error: %s", log_path_name.c_str(), strerror(errno));
+			LOG("Error-> get %s stat error: %s", 
+				log_path_name.c_str(), strerror(errno));
 		}
 
 		map_si m_log_file;
