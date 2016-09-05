@@ -227,7 +227,18 @@
             <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_O1/ldr/ok" del_size0="0" /> 
             <output_path path="/opt/se/brd_modules/binall/service/bin_FTP_2/ldr/ok" del_size0="0" />
         </one_filter>
-        
+		
+		<!-- add volte to gz config -->
+        <one_filter>
+            <mode copy="1" />
+            <key key_name="Volte_MME" />
+			<key key_name="Volte_CSCF" />
+			<key key_name="Volte_eMSC" />
+			<key key_name="Volte_SBC" />
+            <field column=""  filter=""/> 
+            <input_path path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree" exp_name=".dat" bak_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree_bak" />
+            <output_path path="/xdata0/gz_ss" del_size0="0" /> 
+        </one_filter>
         
     </file_list>
 </system>

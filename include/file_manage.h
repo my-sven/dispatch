@@ -48,6 +48,7 @@ typedef vector<ManageDir> vector_md;
 class FileManage
 {
 public:
+	FileManage();
 	int run();
 	int load_config_info(string file_name);
 	int make_dir(string dir_path);
@@ -68,6 +69,9 @@ public:
 
 private:
 	vector_md v_manage;
+	int  wait_time;
+	string front_word;
+	string back_word;
 };
 
 

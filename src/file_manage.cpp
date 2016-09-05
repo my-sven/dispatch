@@ -2,6 +2,12 @@
 #include "file_manage.h"
 #include "syslog.h"
 
+FileManage::FileManage()
+{
+	wait_time = TIME_H;
+	front_word = "_";
+	back_word = "_";
+}
 
 int FileManage::load_config_info(string file_name)
 {
@@ -14,7 +20,7 @@ int FileManage::load_config_info(string file_name)
 
 	TiXmlElement *pRoot = doc.RootElement();
 	TiXmlElement *pElement = pRoot->FirstChildElement();
-    TiXmlElement *pSubElement;
+    	TiXmlElement *pSubElement;
 
 	string src_path="";
 	string dest_path="";
@@ -22,68 +28,83 @@ int FileManage::load_config_info(string file_name)
 	int keep_time=0;
 
 	while(pElement)
-    {
-    	src_path="";
+    	{
+    		src_path="";
 		dest_path="";
 		keep_time=0;
+
+		if (!strcmp(pElement->Value(), "time_style"))
+		{
+			if(pElement->Attribute("front"))
+	    		{
+	    			front_word = pElement->Attribute("front");
+	    		}
+			if(pElement->Attribute("back"))
+	    		{
+	    			back_word = pElement->Attribute("back");
+	    		}
+		}
 		
-    	if(!strcmp(pElement->Value(), "manage")) 
-        {
-        	if(pElement->Attribute("src_path"))
-    		{
-    			src_path = pElement->Attribute("src_path");
-    		}
+    		if(!strcmp(pElement->Value(), "manage")) 
+	      {
+	        	if(pElement->Attribute("src_path"))
+	    		{
+	    			src_path = pElement->Attribute("src_path");
+	    		}
 
-			if(pElement->Attribute("dest_path"))
-    		{
-    			dest_path = pElement->Attribute("dest_path");
-    		}
+				if(pElement->Attribute("dest_path"))
+	    		{
+	    			dest_path = pElement->Attribute("dest_path");
+	    		}
 
-			if(pElement->Attribute("keep_time"))
-    		{
-    			temp = pElement->Attribute("keep_time");
-    		}
+				if(pElement->Attribute("keep_time"))
+	    		{
+	    			temp = pElement->Attribute("keep_time");
+	    		}
 
-			string t_str;
-			t_str = temp.substr(0, temp.size()-1);
-			switch(temp[temp.size()-1])
-			{
-			case 'm':
-			case 'M':
-				keep_time = TIME_M*(atoi(t_str.c_str()));
-				break;
-			case 'h':
-			case 'H':
-				keep_time = TIME_H*(atoi(t_str.c_str()));
-				break;
-			case 'd':
-			case 'D':
-				keep_time = TIME_D*(atoi(t_str.c_str()));
-				break;
-			default:
-				LOG("Error-> config unit of time error: %s", temp.c_str());
-				return -1;
-			}
-			
-			boost::trim_right_if(src_path, boost::is_any_of("/ "));
-			boost::trim_right_if(dest_path, boost::is_any_of("/ "));
-			if(0 != src_path.size() && 0 != dest_path.size() && 0 != keep_time)
-			{
-				ManageDir md;
-				md.src_path = src_path;
-				md.dest_path = dest_path;
-				md.keep_time = keep_time;
-				v_manage.push_back(md);
-			}
-			else
-			{
-				LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
-					src_path.c_str(), dest_path.c_str(), temp.c_str() );
-			}
-        }
+				string t_str;
+				t_str = temp.substr(0, temp.size()-1);
+				switch(temp[temp.size()-1])
+				{
+				case 'm':
+				case 'M':
+					keep_time = TIME_M*(atoi(t_str.c_str()));
+					wait_time = TIME_M;
+					break;
+				case 'h':
+				case 'H':
+					keep_time = TIME_H*(atoi(t_str.c_str()));
+					wait_time = TIME_H;
+					break;
+				case 'd':
+				case 'D':
+					keep_time = TIME_D*(atoi(t_str.c_str()));
+					wait_time = TIME_D;
+					break;
+				default:
+					LOG("Error-> config unit of time error: %s", temp.c_str());
+					return -1;
+				}
+				
+				boost::trim_right_if(src_path, boost::is_any_of("/ "));
+				boost::trim_right_if(dest_path, boost::is_any_of("/ "));
+				if(0 != src_path.size() && 0 != dest_path.size() && 0 != keep_time)
+				{
+					ManageDir md;
+					md.src_path = src_path;
+					md.dest_path = dest_path;
+					md.keep_time = keep_time;
+					v_manage.push_back(md);
+				}
+				else
+				{
+					LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
+						src_path.c_str(), dest_path.c_str(), temp.c_str() );
+				}
+	        }
 
         pElement = pElement->NextSiblingElement();
-    }
+    	}
 
 	if(v_manage.empty())
 	{
@@ -226,9 +247,9 @@ int FileManage::get_dir_from_name(string &dir, string file_name)
 {
 	string tmp;
 	size_t pos;
-	pos = file_name.find_last_of("_");
+	pos = file_name.find_last_of(back_word.c_str());
 	tmp = file_name.substr(0, pos);
-	pos = tmp.find_last_of("_");
+	pos = tmp.find_last_of(front_word.c_str());
 	tmp = tmp.substr(pos+1);
 	if(tmp.size() < 10)
 	{
@@ -363,7 +384,7 @@ int FileManage::manage_file()
 		{
 			back_file_to_dir(it->src_path, it->dest_path);
 		}
-		sleep(3);
+		sleep(60);
 	}
 }
 
@@ -376,7 +397,7 @@ int FileManage::manage_dir()
 		{
 			check_dir_time(it->dest_path, it->keep_time);
 		}
-		sleep(60);
+		sleep(wait_time);
 	}
 }
 

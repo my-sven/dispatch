@@ -856,7 +856,7 @@ int FilterData::rename_file(string src_name, string dest_name)
 
 int FilterData::copy_file(string src_name, string dest_name)
 {
-	ifstream fread;
+/*	ifstream fread;
 	ofstream fout;
 	string dir_path;
 
@@ -884,6 +884,45 @@ int FilterData::copy_file(string src_name, string dest_name)
 
 	fread.close();
 	fout.close();
+*/
+	int in;
+	int out;
+	int ret = -1;
+	string dir_path;
+	char buffer[1024] = {0};
+
+	in = open(src_name.c_str(), O_RDONLY);
+	if (-1 == in) // 打开文件失败,则异常返回
+	{    
+	    LOG("Error-> Open file failed: %s %s", src_name.c_str(), strerror(errno));
+	    return -1;
+	}
+	 
+	out = open(dest_name.c_str(), O_WRONLY | O_CREAT |O_TRUNC, 00644);
+	if (-1 == out)
+	{
+	    	dir_path = dest_name.substr(0, dest_name.find_last_of("/"));
+		make_dir(dir_path);
+		out = open(dest_name.c_str(), O_WRONLY | O_CREAT |O_TRUNC);
+		if(-1 == out)  // 创建文件失败,则异常返回
+		{
+			LOG("Error-> Open file failed: %s %s", dest_name.c_str(), strerror(errno));
+			return -1;
+		}
+	}
+	
+	while ((ret = read(in, buffer, 1024)) > 0)
+	{
+		if(write(out, buffer, ret) < ret)
+		{
+			LOG("Error-> write failed: %s %s", dest_name.c_str(), strerror(errno));
+		}
+	}
+	 
+	close(in);
+	close(out);
+	 
+	return 0;
 	
 }
 
@@ -925,7 +964,10 @@ int FilterData::process_files(
 
 		if(p_config->copy) // copy为 1 时完全复制文件
 		{
-			copy_file(input_name, temp_name);
+			if (0 != copy_file(input_name, temp_name))
+			{
+				continue;
+			}
 			rename_file(temp_name, output_name);
 			continue;
 		}
