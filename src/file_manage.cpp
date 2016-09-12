@@ -228,6 +228,8 @@ int FileManage::remove_dir(string dir_path)
 		LOG("Error-> rename error: %s %s", dir_path.c_str(), strerror(errno));
 	}
 
+	closedir(dirptr);
+
 	return 0;
 }
 
