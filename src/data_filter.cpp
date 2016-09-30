@@ -21,11 +21,44 @@ void FilterData::init_config(Config *data)
 FilterData::FilterData()
 {
 	init_config(&global_info);
+	
+	pthread_init();
 }
 
 FilterData::~FilterData()
 {
 	v_filter.clear();
+	
+	pthread_destroy();
+}
+
+int FilterData::pthread_init()
+{
+	if (pthread_cond_init(&queue_not_empty, NULL))
+	{
+	    	LOG("failed to init queue_not_empty! :%s", strerror(errno));
+		exit(errno);
+	}
+
+	if (pthread_cond_init(&queue_not_full, NULL))
+	{
+	    	LOG("failed to init queue_not_full! :%s", strerror(errno));
+		exit(errno);
+	}
+
+	if (pthread_mutex_init(&mutex, NULL))
+	{
+	    	LOG("failed to init mutex! :%s", strerror(errno));
+		exit(errno);
+	}
+	return 0;
+}
+
+void FilterData::pthread_destroy()
+{
+	pthread_mutex_destroy(&mutex);
+	pthread_cond_destroy(&queue_not_empty);   
+	pthread_cond_destroy(&queue_not_full);
 }
 
 void FilterData::get_base_info(TiXmlElement *pElement, Config &p_config)
@@ -715,6 +748,18 @@ int FilterData::get_out_vector(
 	return ret;
 }
 
+void FilterData::push_back_to_deque(string deque_name)
+{
+	pthread_mutex_lock(&mutex);
+	while (DEQUE_MAX_SIZE == file_deque.size())
+	{
+		pthread_cond_wait(&queue_not_full, &mutex);
+	}
+	file_deque.push_back(deque_name);
+	pthread_cond_broadcast(&queue_not_empty);
+	pthread_mutex_unlock(&mutex);
+}
+
 int FilterData::get_filename_from_dir(
 	string src_path, 
 	string input_path,
@@ -762,7 +807,7 @@ int FilterData::get_filename_from_dir(
 			{
 				string deque_name;
 				join_path(deque_name, src_path, file_name);
-				file_deque.push_back(deque_name);
+				push_back_to_deque(deque_name);
 			}
 			else
 			{
@@ -776,7 +821,7 @@ int FilterData::get_filename_from_dir(
 
 				string deque_name;
 				join_path(deque_name, src_path, file_name);
-				file_deque.push_back(deque_name);
+				push_back_to_deque(deque_name);
 			}
 		}
 		
@@ -1121,94 +1166,100 @@ void FilterData::analysis_config(size_t thread_num)
 {
 	while(1)
 	{
-		while(0 != file_deque.size())
+		pthread_mutex_lock(&mutex);
+		while (0 == file_deque.size())
 		{
-			string path_and_name = file_deque.front();
-			size_t pos = path_and_name.find_last_of("/");
-			string path_name = path_and_name.substr(0, pos);
-			string file_name = path_and_name.substr(pos+1);
+			pthread_cond_wait(&queue_not_empty, &mutex);
+		}
+		
+		string path_and_name = file_deque.front();
+		file_deque.pop_front();
+		pthread_cond_signal(&queue_not_full);
+		pthread_mutex_unlock(&mutex);
+		
+		size_t pos = path_and_name.find_last_of("/");
+		string path_name = path_and_name.substr(0, pos);
+		string file_name = path_and_name.substr(pos+1);
 
-			LOG("Log%d->  begin: %s", thread_num, path_and_name.c_str());
+		LOG("Log%d->  begin: %s", thread_num, path_and_name.c_str());
 
-			string bak_path;
-			string bak_name;
-			bak_path = m_inpath_to_tmp.find(path_name)->second.bak_path;
-			join_path(bak_name, bak_path, file_name);
+		string bak_path;
+		string bak_name;
+		bak_path = m_inpath_to_tmp.find(path_name)->second.bak_path;
+		join_path(bak_name, bak_path, file_name);
 
-			string tmp_path;
-			string tmp_name;
-			join_path(tmp_path, THREAD_TMP_DIR, 
-						m_inpath_to_tmp.find(path_name)->second.tmp_path);
-			join_path(tmp_name, tmp_path, file_name);
+		string tmp_path;
+		string tmp_name;
+		join_path(tmp_path, THREAD_TMP_DIR, 
+					m_inpath_to_tmp.find(path_name)->second.tmp_path);
+		join_path(tmp_name, tmp_path, file_name);
 
-			map_km::iterator it_km;
-			for(it_km=m_filter.begin(); it_km != m_filter.end(); it_km++)
+		map_km::iterator it_km;
+		for(it_km=m_filter.begin(); it_km != m_filter.end(); it_km++)
+		{
+			bool key_flag = false;
+			string key_name;
+			int key_site;
+			key_name = it_km->first.key_name;
+			key_site = it_km->first.key_site;
+
+			boost::trim_if(file_name, boost::is_any_of(" \n\r"));
+			string name = file_name.substr(0, file_name.find_last_of("."));
+			
+			if(0==key_site && boost::contains(file_name, key_name))
 			{
-				bool key_flag = false;
-				string key_name;
-				int key_site;
-				key_name = it_km->first.key_name;
-				key_site = it_km->first.key_site;
+				key_flag = true;
+			}
+			else if(1==key_site && boost::starts_with(file_name, key_name))
+			{
+				key_flag = true;
+			}
+			else if(2==key_site && boost::ends_with(name, key_name))
+			{
+				key_flag = true;
+			}
+			
+			if(key_flag)
+			{
+				map_im::iterator it_im;
 
-				boost::trim_if(file_name, boost::is_any_of(" \n\r"));
-				string name = file_name.substr(0, file_name.find_last_of("."));
-				
-				if(0==key_site && boost::contains(file_name, key_name))
+				for(it_im = it_km->second.begin(); it_im != it_km->second.end(); it_im++)
 				{
-					key_flag = true;
-				}
-				else if(1==key_site && boost::starts_with(file_name, key_name))
-				{
-					key_flag = true;
-				}
-				else if(2==key_site && boost::ends_with(name, key_name))
-				{
-					key_flag = true;
-				}
-				
-				if(key_flag)
-				{
-					map_im::iterator it_im;
-
-					for(it_im = it_km->second.begin(); it_im != it_km->second.end(); it_im++)
+					bool exp_flag = false;
+					// 判断输入路径是否符合关键字的input_path
+					if(!strcmp(it_im->first.input_path.c_str(), path_name.c_str()))
 					{
-						bool exp_flag = false;
-						// 判断输入路径是否符合关键字的input_path
-						if(!strcmp(it_im->first.input_path.c_str(), path_name.c_str()))
-						{
-							vector_str v_exp;
-							boost::split(v_exp, it_im->first.exp_name, 
-											boost::is_any_of(","), 
-											boost::token_compress_on);
-							for(size_t i=0; i<v_exp.size(); i++)
-							{	
-								// 判断文件后缀名是否符合关键字的后缀名
-								if(boost::ends_with(file_name, v_exp[i]))
-								{
-									exp_flag = true;
-									break;
-								}
+						vector_str v_exp;
+						boost::split(v_exp, it_im->first.exp_name, 
+										boost::is_any_of(","), 
+										boost::token_compress_on);
+						for(size_t i=0; i<v_exp.size(); i++)
+						{	
+							// 判断文件后缀名是否符合关键字的后缀名
+							if(boost::ends_with(file_name, v_exp[i]))
+							{
+								exp_flag = true;
+								break;
 							}
 						}
-						if(exp_flag)
-						{
-							process_files(tmp_name, file_name, it_im->second);
-						}
 					}
-					
+					if(exp_flag)
+					{
+						process_files(tmp_name, file_name, it_im->second);
+					}
 				}
+				
 			}
-
-			// 判断bak_path是否为空,不为空备份到bak_path
-			if(strcmp(bak_path.c_str(), ""))
-			{
-				rename_file(tmp_name, bak_name);
-			}
-
-			LOG("Log%d-> finish: %s", thread_num, path_and_name.c_str());
 		}
 
-		sleep(1);
+		// 判断bak_path是否为空,不为空备份到bak_path
+		if(strcmp(bak_path.c_str(), ""))
+		{
+			rename_file(tmp_name, bak_name);
+		}
+
+		LOG("Log%d-> finish: %s", thread_num, path_and_name.c_str());
+	
 	}
 }
 

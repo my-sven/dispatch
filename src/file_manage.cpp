@@ -249,16 +249,24 @@ int FileManage::get_dir_from_name(string &dir, string file_name)
 {
 	string tmp;
 	size_t pos;
-	pos = file_name.find_last_of(back_word.c_str());
+	pos = file_name.rfind(back_word.c_str());
 	tmp = file_name.substr(0, pos);
-	pos = tmp.find_last_of(front_word.c_str());
+	pos = tmp.rfind(front_word.c_str());
 	tmp = tmp.substr(pos+1);
-	if(tmp.size() < 10)
+	if (tmp.size() == 0)
 	{
 		LOG("Warning-> file name time format error: %s",file_name.c_str());
 		return -1;
 	}
-	dir = tmp.substr(0, 10);
+	else if (tmp.size() > 10)
+	{
+		dir = tmp.substr(0, 10);
+	}
+	else
+	{
+		dir = tmp;
+	}
+	
 	return 0;
 }
 

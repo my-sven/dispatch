@@ -17,9 +17,6 @@
 #include <sys/prctl.h>
 #include <fcntl.h>
 
-
-
-
 #include <string>
 #include <sstream>
 #include <fstream> 
@@ -37,6 +34,8 @@ using namespace std;
 #define MAX_PATH 1024
 #define THREAD_TMP_DIR "./tmp/thread"
 #define INPUT_TMP_DIR "path"
+
+#define DEQUE_MAX_SIZE 500	//队列最大长度
 
 typedef vector<string> vector_str;
 typedef vector<int> vector_int;
@@ -131,7 +130,7 @@ typedef struct
 	string bak_path;
 }Tmp_bak;
 
-typedef CDeque<string> CDeque_str;
+typedef deque<string> CDeque_str;
 
 typedef vector<Config> vector_cf;
 
@@ -273,6 +272,10 @@ public:
 
 	void str_add_int(string &dest, int num);
 
+	int pthread_init();
+	void pthread_destroy();
+	void push_back_to_deque(string name);
+
 	int run(string config_path);
 
 private:
@@ -288,7 +291,11 @@ private:
 	map_st m_inpath_to_tmp;
 	
 	CDeque_str file_deque;
-	
+
+	pthread_mutex_t mutex;
+	pthread_cond_t queue_not_empty;
+	pthread_cond_t queue_not_full;
+
 };
 
 /*******************************************
