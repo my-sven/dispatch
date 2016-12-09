@@ -1400,7 +1400,7 @@ int FilterData::run(string config_path)
 
 }
 
-void *filter_thread(void *arg)
+void	* FilterData::filter_thread(void *arg)
 {
 	pthread_detach(pthread_self());
 	

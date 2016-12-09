@@ -278,6 +278,8 @@ public:
 
 	int run(string config_path);
 
+	static void * filter_thread(void *arg);
+
 private:
 	int max_thread_num;
 	// 全局配置过滤条件
@@ -307,10 +309,6 @@ typedef struct
 	size_t thread_num;
 }Thread_arg;
 
-/*******************************************
-    * @brief    : 每条规则对应的处理线程
-*******************************************/
-void *filter_thread(void *arg);
 
 
 
