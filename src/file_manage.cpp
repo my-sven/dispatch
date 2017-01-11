@@ -439,7 +439,7 @@ int FileManage::run()
 	return 0;
 }
 
-void *manage_file_thread(void* arg)
+void * FileManage::manage_file_thread(void* arg)
 {
 	pthread_detach(pthread_self());
 
@@ -448,7 +448,7 @@ void *manage_file_thread(void* arg)
 	p_fm->manage_file();
 }
 
-void *manage_dir_thread(void* arg)
+void * FileManage::manage_dir_thread(void* arg)
 {
 	pthread_detach(pthread_self());
 

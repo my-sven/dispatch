@@ -58,6 +58,7 @@ public:
 	int make_dir(string dir_path);
 	int open_log_file(string log_file_name);
 
+	static void *log_thread(void* arg);
 
 public:
 	ofstream fwrite;
@@ -70,8 +71,6 @@ private:
 	int			log_time;
 };
 
-// log状态定时检测线程
-void *log_thread(void* arg);
 
 // 全局函数 用于宏定义LOG
 void log_info(const char *func, string fmt, ...);

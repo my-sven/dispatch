@@ -66,6 +66,8 @@ public:
 	int manage_file();
 	int manage_dir();
 
+	static void *manage_file_thread(void* arg);
+	static void *manage_dir_thread(void* arg);
 
 private:
 	vector_md v_manage;
@@ -74,9 +76,6 @@ private:
 	string back_word;
 };
 
-
-void *manage_file_thread(void* arg);
-void *manage_dir_thread(void* arg);
 
 
 

@@ -220,7 +220,7 @@ void SysLog::run()
 	}
 }
 
-void *log_thread(void* arg)
+void * SysLog::log_thread(void* arg)
 {
 	pthread_detach(pthread_self());
 	
