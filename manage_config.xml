@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <system>
-	<time_style front="_" back="_"/>
-	
+    <time_style front="_" back="_"/>
+    
     <manage src_path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/tree" dest_path="/opt/se/brd_modules/binall/service/bin_mrf_OI/ldr/tree" keep_time="7d" />
     <manage src_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/tree" dest_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_101/ldr/SS" keep_time="7d" />
-	<manage src_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree_bak" dest_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree_bak" keep_time="7d" />
+    <manage src_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree_bak" dest_path="/opt/se/brd_modules/binall/service/bin_msgrowfile_volte/ldr/tree_bak" keep_time="7d" />
     <manage src_path="/xdata0/sz_ss" dest_path="/xdata0/sz" keep_time="7d" />
     <manage src_path="/xdata0/gz_ss" dest_path="/xdata0/gz" keep_time="7d" />
     <manage src_path="/xdata0/zh_ss" dest_path="/xdata0/zh" keep_time="7d" />

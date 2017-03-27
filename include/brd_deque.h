@@ -133,7 +133,7 @@ public:
         }
         m_lckZero.Unlock();
     };
-	
+    
     /*********************************************************
     * 功    能: 队列出栈,从队列头取出数据
     * 输入参数: 
@@ -283,8 +283,8 @@ private:
     deque<T>        m_dqZero;         //Zero 队列
     CPosixMutex     m_lckZero;        //Zero 队列互斥锁
     uint64_t        m_dqCntZero;      //Zero 队列大小
-    int 			lstsize;          //尺寸
-    deque<T>		lmsgs;            //add by dlq
+    int             lstsize;          //尺寸
+    deque<T>        lmsgs;            //add by dlq
 };
 
 
