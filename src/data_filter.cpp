@@ -1279,8 +1279,8 @@ void FilterData::scanning_file()
 
             if(0 != get_filename_from_dir(input_path, input_path, false))
             {
-                m_inpath_to_tmp.erase(it_st);
-                it_st--;
+                m_inpath_to_tmp.erase(it_st--);
+                //it_st--;
                 continue;
             }
             LOG("Log-> end scanning file :%s",input_path.c_str());
