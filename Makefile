@@ -40,8 +40,8 @@ INCLUDES=-I$(INC_MODULE)
 
 #需要引入的库文件及路径
 LIB_ALL=-L$(LIB_PATH) \
-    -ltinyxml \
-    -lpthread
+	-ltinyxml \
+	-lpthread
 
 #需要生成的程序名
 BIN_FILE=se-mrf_FTP
@@ -59,11 +59,11 @@ OBJ+=$(C_SRC_FILE:%.c=%.o)
 
 #【以下部分请勿修改】
 ifeq ($(mode),debug)
-    CXX=g++ -ggdb3 
-    CC=gcc -ggdb3 
+	CXX=g++ -ggdb3 
+	CC=gcc -ggdb3 
 else
-    CXX=g++
-    CC=gcc 
+	CXX=g++
+	CC=gcc 
 endif
 
 #【以下部分请勿修改】
@@ -74,23 +74,23 @@ build:$(BIN_FILE)
 
 #【以下部分请勿修改】
 $(BIN_FILE):$(OBJ)
-    @cd $(OBJ_PATH); $(CXX) $(LIB_ALL) $(OBJ) -o $(BASE)/$(BIN_FILE)
+	@cd $(OBJ_PATH); $(CXX) $(LIB_ALL) $(OBJ) -o $(BASE)/$(BIN_FILE)
 
 
 #【以下部分请勿修改】
 %.o:%.cpp
-    @if [ ! -d $(OBJ_PATH) ]; then mkdir -p $(OBJ_PATH); fi;
-    @echo Compile file $<,`more $<|wc -l` lines ...
-    @$(CXX) -c $(INCLUDES) $(FLAG) $< -o $(OBJ_PATH)/$@
-    
+	@if [ ! -d $(OBJ_PATH) ]; then mkdir -p $(OBJ_PATH); fi;
+	@echo Compile file $<,`more $<|wc -l` lines ...
+	@$(CXX) -c $(INCLUDES) $(FLAG) $< -o $(OBJ_PATH)/$@
+	
 %.o:%.c
-    @if [ ! -d $(OBJ_PATH) ]; then mkdir -p $(OBJ_PATH); fi;
-    @echo Compile file $<,`more $<|wc -l` lines ...
-    @$(CC) -c $(INCLUDES) $(FLAG) $< -o $(OBJ_PATH)/$@
+	@if [ ! -d $(OBJ_PATH) ]; then mkdir -p $(OBJ_PATH); fi;
+	@echo Compile file $<,`more $<|wc -l` lines ...
+	@$(CC) -c $(INCLUDES) $(FLAG) $< -o $(OBJ_PATH)/$@
 
 #【以下部分请勿修改】
 .PHONY:clean
 
 clean:
-    @echo Delete $(OBJ) $(BIN_FILE)
-    @rm -f $(BIN_FILE); cd $(OBJ_PATH); rm -f $(OBJ)
+	@echo Delete $(OBJ) $(BIN_FILE)
+	@rm -f $(BIN_FILE); cd $(OBJ_PATH); rm -f $(OBJ)
