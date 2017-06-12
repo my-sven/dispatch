@@ -516,15 +516,12 @@ bool FilterData::condition_analysis(string item, string filter)
     bool ret = false;
     size_t pos;
     string str_data;
-
-    double item_d = 0.0;
-    double filter_d = 0.0;
     
     boost::trim(item);
     boost::trim(filter);
     str_data = filter.substr(1);
-    item_d = atof(item.c_str());
-    filter_d = atof(str_data.c_str());
+    double item_d = atof(item.c_str());
+    double filter_d = atof(str_data.c_str());
 
     switch(filter[0])
     {
@@ -833,7 +830,6 @@ int FilterData::get_filename_from_dir(
 
 int FilterData::make_dir(string dir_path)
 {
-    size_t pos;
     string par_dir_path;
     if(0 == dir_path.size())
     {
@@ -841,6 +837,7 @@ int FilterData::make_dir(string dir_path)
     }
     if(0 != access(dir_path.c_str(), 0))
     {
+        size_t pos;
         boost::trim_right_if(dir_path, boost::is_any_of("/ "));
         pos = dir_path.find_last_of("/");
         par_dir_path = dir_path.substr(0, pos);
@@ -873,7 +870,6 @@ string FilterData::join_path(
 
 int FilterData::rename_file(string src_name, string dest_name)
 {   
-    size_t pos;
     string dir_path;
 
     if(0 != rename(src_name.c_str(), dest_name.c_str()))
@@ -1355,10 +1351,7 @@ int FilterData::make_all_dir()
 
 int FilterData::run(string config_path)
 {
-    int ret = -1;
-
-    ret = load_config_info(config_path);
-    if(ret)
+    if(-1 == load_config_info(config_path))
     {
         LOG("Error-> Load config file is failed: %s",config_path.c_str());
         return -1;
@@ -1382,7 +1375,7 @@ int FilterData::run(string config_path)
         thread_arg.thread_num = d_num;
         
         pthread_t th_id;
-        ret = pthread_create(&th_id, NULL, filter_thread, (void*)&thread_arg);
+        int ret = pthread_create(&th_id, NULL, filter_thread, (void*)&thread_arg);
         if(0 != ret)
         {
             LOG("Error-> create thread error: %s", strerror(ret));
@@ -1397,7 +1390,8 @@ int FilterData::run(string config_path)
 
     // É¨ÃèÊäÈëÄ¿Â¼
     scanning_file();
-
+    
+    return 0;
 }
 
 void    * FilterData::filter_thread(void *arg)
@@ -1408,9 +1402,9 @@ void    * FilterData::filter_thread(void *arg)
     p_th_arg = (Thread_arg *)arg;
 
     FilterData *p_fd = p_th_arg->p_fd;
-    size_t thread_num = p_th_arg->thread_num;
+    int thread_num = p_th_arg->thread_num;
 
-    char thread_name[16]={0};
+    char thread_name[128]={0};
     sprintf(thread_name, "filter_thread%d", thread_num);
     prctl(PR_SET_NAME, thread_name);
     

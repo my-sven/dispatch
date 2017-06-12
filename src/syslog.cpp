@@ -30,11 +30,10 @@ SysLog::~SysLog()
 
 int SysLog::make_dir(string dir_path)
 {
-    size_t pos;
     string par_dir_path;
     if(0 != access(dir_path.c_str(), 0))
     {
-        pos = dir_path.find_last_of("/");
+        size_t pos = dir_path.find_last_of("/");
         par_dir_path = dir_path.substr(0, pos);
         if(0 != make_dir(par_dir_path))
         {
@@ -51,7 +50,6 @@ int SysLog::make_dir(string dir_path)
 
 int SysLog::open_log_file(string log_file_name)
 {
-    int ret;
     struct stat fs;
     if(access(log_file_name.c_str(), 0))
     {
@@ -66,7 +64,7 @@ int SysLog::open_log_file(string log_file_name)
         cerr<<"Error-> Open file failed: "<< log_file_name.c_str() <<endl;
         return -1;
     }
-    
+    return 0;
 }
 
 
@@ -129,7 +127,6 @@ void SysLog::get_new_name(string &dest_name, string src_name)
 
 int SysLog::rename_file(string src_name, string dest_name)
 {   
-    size_t pos;
     string par_dir_path;
 
     if(0 != rename(src_name.c_str(), dest_name.c_str()))
@@ -139,7 +136,7 @@ int SysLog::rename_file(string src_name, string dest_name)
             LOG("Error-> file is not exist: %s", src_name.c_str(), strerror(errno));
             return -1;
         }
-        pos = dest_name.find_last_of("/");
+        size_t pos = dest_name.find_last_of("/");
         par_dir_path = dest_name.substr(0, pos);
         make_dir(par_dir_path);
         if(0 != rename(src_name.c_str(), dest_name.c_str()))
@@ -154,11 +151,10 @@ int SysLog::rename_file(string src_name, string dest_name)
 
 void SysLog::check_log_state()
 {   
-    int ret;
     struct stat f_stat;
     while(1)
     {
-        ret = stat(log_path_name.c_str(),&f_stat);
+        int ret = stat(log_path_name.c_str(),&f_stat);
         if(ret == 0)
         {
             if(f_stat.st_size > log_size)

@@ -25,86 +25,85 @@ int FileManage::load_config_info(string file_name)
     string src_path="";
     string dest_path="";
     string temp="";
-    int keep_time=0;
 
-    while(pElement)
-        {
-            src_path="";
+    while (pElement)
+    {
+        src_path="";
         dest_path="";
-        keep_time=0;
 
         if (!strcmp(pElement->Value(), "time_style"))
         {
             if(pElement->Attribute("front"))
-                {
-                    front_word = pElement->Attribute("front");
-                }
+            {
+                front_word = pElement->Attribute("front");
+            }
             if(pElement->Attribute("back"))
-                {
-                    back_word = pElement->Attribute("back");
-                }
+            {
+                back_word = pElement->Attribute("back");
+            }
         }
-        
-            if(!strcmp(pElement->Value(), "manage")) 
-          {
-                if(pElement->Attribute("src_path"))
-                {
-                    src_path = pElement->Attribute("src_path");
-                }
-
-                if(pElement->Attribute("dest_path"))
-                {
-                    dest_path = pElement->Attribute("dest_path");
-                }
-
-                if(pElement->Attribute("keep_time"))
-                {
-                    temp = pElement->Attribute("keep_time");
-                }
-
-                string t_str;
-                t_str = temp.substr(0, temp.size()-1);
-                switch(temp[temp.size()-1])
-                {
-                case 'm':
-                case 'M':
-                    keep_time = TIME_M*(atoi(t_str.c_str()));
-                    wait_time = TIME_M;
-                    break;
-                case 'h':
-                case 'H':
-                    keep_time = TIME_H*(atoi(t_str.c_str()));
-                    wait_time = TIME_H;
-                    break;
-                case 'd':
-                case 'D':
-                    keep_time = TIME_D*(atoi(t_str.c_str()));
-                    wait_time = TIME_D;
-                    break;
-                default:
-                    LOG("Error-> config unit of time error: %s", temp.c_str());
-                    return -1;
-                }
-                
-                boost::trim_right_if(src_path, boost::is_any_of("/ "));
-                boost::trim_right_if(dest_path, boost::is_any_of("/ "));
-                if(0 != src_path.size() && 0 != dest_path.size() && 0 != keep_time)
-                {
-                    ManageDir md;
-                    md.src_path = src_path;
-                    md.dest_path = dest_path;
-                    md.keep_time = keep_time;
-                    v_manage.push_back(md);
-                }
-                else
-                {
-                    LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
-                        src_path.c_str(), dest_path.c_str(), temp.c_str() );
-                }
+    
+        if(!strcmp(pElement->Value(), "manage")) 
+        {
+            if(pElement->Attribute("src_path"))
+            {
+                src_path = pElement->Attribute("src_path");
             }
 
-        pElement = pElement->NextSiblingElement();
+            if(pElement->Attribute("dest_path"))
+            {
+                dest_path = pElement->Attribute("dest_path");
+            }
+
+            if(pElement->Attribute("keep_time"))
+            {
+                temp = pElement->Attribute("keep_time");
+            }
+
+            string t_str;
+            int keep_time=0;
+            t_str = temp.substr(0, temp.size()-1);
+            switch(temp[temp.size()-1])
+            {
+            case 'm':
+            case 'M':
+                keep_time = TIME_M*(atoi(t_str.c_str()));
+                wait_time = TIME_M;
+                break;
+            case 'h':
+            case 'H':
+                keep_time = TIME_H*(atoi(t_str.c_str()));
+                wait_time = TIME_H;
+                break;
+            case 'd':
+            case 'D':
+                keep_time = TIME_D*(atoi(t_str.c_str()));
+                wait_time = TIME_D;
+                break;
+            default:
+                LOG("Error-> config unit of time error: %s", temp.c_str());
+                return -1;
+            }
+            
+            boost::trim_right_if(src_path, boost::is_any_of("/ "));
+            boost::trim_right_if(dest_path, boost::is_any_of("/ "));
+            if(0 != src_path.size() && 0 != dest_path.size() && 0 != keep_time)
+            {
+                ManageDir md;
+                md.src_path = src_path;
+                md.dest_path = dest_path;
+                md.keep_time = keep_time;
+                v_manage.push_back(md);
+            }
+            else
+            {
+                LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
+                    src_path.c_str(), dest_path.c_str(), temp.c_str() );
+            }
         }
+
+        pElement = pElement->NextSiblingElement();
+    }
 
     if(v_manage.empty())
     {
@@ -118,7 +117,6 @@ int FileManage::load_config_info(string file_name)
 
 int FileManage::make_dir(string dir_path)
 {
-    size_t pos;
     string par_dir_path;
     if(0 == dir_path.size())
     {
@@ -126,6 +124,7 @@ int FileManage::make_dir(string dir_path)
     }
     if(0 != access(dir_path.c_str(), 0))
     {
+        size_t pos;
         boost::trim_right_if(dir_path, boost::is_any_of("/ "));
         pos = dir_path.find_last_of("/");
         par_dir_path = dir_path.substr(0, pos);
@@ -158,7 +157,6 @@ string FileManage::join_path(
 
 int FileManage::rename_file(string src_name, string dest_name)
 {   
-    size_t pos;
     string dir_path;
 
     if(0 != rename(src_name.c_str(), dest_name.c_str()))
