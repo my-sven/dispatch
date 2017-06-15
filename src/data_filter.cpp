@@ -1,11 +1,29 @@
 //////////////////////////////////////////////////////////////////////////
 
 #include "data_filter.h"
-#include "syslog.h"
-
 
 
 //////////////////////////////////////////////////////////////////////////
+
+void FilterData::InitLogger()
+{
+    if (CBaseLogger::p_instance == NULL)
+    {
+        CBaseLogger::p_instance = new CBaseLogger();
+    }
+    
+    LOGGERITOR itor = CBaseLogger::p_instance->m_mapLogger.find("filterData");
+    if (itor ==  CBaseLogger::p_instance->m_mapLogger.end())
+    {
+        CBaseLogger::p_instance->addLogger("filterData", DEBUG_LOG_LEVEL);
+        logger = CBaseLogger::p_instance->m_mapLogger["filterData"];
+    }
+    else
+    {
+        logger = itor->second;
+    }
+}
+
 
 void FilterData::init_config(Config *data)
 {
@@ -20,6 +38,7 @@ void FilterData::init_config(Config *data)
 
 FilterData::FilterData()
 {
+    InitLogger();
     init_config(&global_info);
     
     pthread_init();
@@ -36,19 +55,19 @@ int FilterData::pthread_init()
 {
     if (pthread_cond_init(&queue_not_empty, NULL))
     {
-            LOG("failed to init queue_not_empty! :%s", strerror(errno));
+        LOG4CPLUS_DEBUG(logger,"failed to init queue_not_empty! :"<< strerror(errno));
         exit(errno);
     }
 
     if (pthread_cond_init(&queue_not_full, NULL))
     {
-            LOG("failed to init queue_not_full! :%s", strerror(errno));
+            LOG4CPLUS_DEBUG(logger,"failed to init queue_not_full! :"<< strerror(errno));
         exit(errno);
     }
 
     if (pthread_mutex_init(&mutex, NULL))
     {
-            LOG("failed to init mutex! :%s", strerror(errno));
+            LOG4CPLUS_DEBUG(logger,"failed to init mutex! :"<< strerror(errno));
         exit(errno);
     }
     return 0;
@@ -223,7 +242,7 @@ int FilterData::load_config_info(string str_file_name)
     TiXmlDocument doc(str_file_name.c_str());
     if(!doc.LoadFile())
     {
-        LOG("Error-> Config file: %s load failed", str_file_name.c_str());
+        LOG4CPLUS_ERROR(logger,"Load config file failed : "<< str_file_name);
         return -1;
     }
 
@@ -282,7 +301,7 @@ int FilterData::check_config()
 {
     if(v_filter.empty())
     {
-        LOG("Error-> Config is empty: please check config file");
+        LOG4CPLUS_ERROR(logger,"Config is empty: please check config file");
         return -1;
     }
     
@@ -318,14 +337,14 @@ int FilterData::check_config()
 
         if(v_filter[site].copy<0 || v_filter[site].copy>1)
         {
-            LOG("Error-> Invalid copy: %d range(0,1)", v_filter[site].copy);
+            LOG4CPLUS_ERROR(logger," Invalid copy: range(0,1) "<< v_filter[site].copy);
             return -1;
         }
         
 
         if(v_filter[site].direction<0 || v_filter[site].direction>3)
         {
-            LOG("Error-> Invalid direction: %d range(0,3)", v_filter[site].direction);
+            LOG4CPLUS_ERROR(logger," Invalid direction: range(0,3) "<< v_filter[site].direction);
             return -1;
         }
 
@@ -345,7 +364,7 @@ int FilterData::check_config()
             
             if(v_filter[site].v_output[i].del_size0<0 || v_filter[site].v_output[i].del_size0>1)
             {
-                LOG("Error-> Invalid direction: %d range(0,1)", v_filter[site].v_output[i].del_size0);
+                LOG4CPLUS_ERROR(logger," Invalid direction: range(0,1) "<< v_filter[site].v_output[i].del_size0);
                 return -1;
             }
         }
@@ -389,8 +408,7 @@ int FilterData::check_config()
             
             if(v_filter[site].v_key[j].key_site<0 || v_filter[site].v_key[j].key_site>2)
             {
-                LOG("Error-> Invalid key_site: %d range(0,1)", 
-                    v_filter[site].v_key[j].key_site);
+                LOG4CPLUS_ERROR(logger," Invalid key_site: range(0,1) " << v_filter[site].v_key[j].key_site);
                 return -1;
             }
 
@@ -606,7 +624,7 @@ bool FilterData::field_filter_data(
     {
         if(fil_spill_flag)
         {
-            LOG("Error-> Filter criteria is incomplete: %s", filter.c_str());
+            LOG4CPLUS_ERROR(logger," Filter criteria is incomplete: "<< filter);
             fil_spill_flag = false;
         }
         return ret;
@@ -616,7 +634,7 @@ bool FilterData::field_filter_data(
     {
         if(fil_spill_flag)
         {
-            LOG("Error-> Filter format is error: %s", filter.c_str());
+            LOG4CPLUS_ERROR(logger," Filter format is error: " << filter);
             fil_spill_flag = false;
         }
         return ret;
@@ -627,7 +645,7 @@ bool FilterData::field_filter_data(
     {
         if(fil_spill_flag)
         {
-            LOG("Error-> Filter cloumn out of range: %s", filter.c_str());
+            LOG4CPLUS_ERROR(logger," Filter cloumn out of range: " << filter);
             fil_spill_flag = false;
         }
         return ret;
@@ -726,7 +744,7 @@ int FilterData::get_out_vector(
                 }
                 else if(col_spill_flag)
                 {
-                    LOG("Warning-> Select cloumn out of range: %d", v_column[i]);
+                    LOG4CPLUS_ERROR(logger,"Warning-> Select cloumn out of range: " << v_column[i]);
                     ret = -1;
                 }
             }
@@ -767,7 +785,7 @@ int FilterData::get_filename_from_dir(
     string file_name;
     if((dirptr = opendir(input_path.c_str())) == NULL)  
     {  
-        LOG("Error-> Open dir error: %s %s", input_path.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," Open dir " << input_path <<" error:"<< strerror(errno));
         return -1;
     }
     
@@ -790,7 +808,7 @@ int FilterData::get_filename_from_dir(
         join_path(full_name, input_path, file_name);
         if(lstat(full_name.c_str(), &buf) < 0) 
         {
-            LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Get stat "<< full_name <<" error: "<<strerror(errno));
             continue;
         }
         
@@ -850,7 +868,7 @@ int FilterData::make_dir(string dir_path)
         }
         if(0 != mkdir(dir_path.c_str(), 0777))
         {
-            LOG("Error-> Mkdir error: %s %s", dir_path.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Mkdir "<< dir_path<<" error: "<< strerror(errno));
             return -1;
         }
     }
@@ -876,8 +894,8 @@ int FilterData::rename_file(string src_name, string dest_name)
     {
         if(0 != access(src_name.c_str(), 0))
         {
-            LOG("Error-> dir or file is not exist: %s", 
-                src_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," dir or file is not exist: "<<src_name.c_str()
+                <<" error:"<<strerror(errno));
             return -1;
         }
         
@@ -886,8 +904,8 @@ int FilterData::rename_file(string src_name, string dest_name)
         
         if(0 != rename(src_name.c_str(), dest_name.c_str()))
         {
-            LOG("Error-> move %s to %s error: %s", 
-                src_name.c_str(),dest_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," move "<<src_name<<" to "<<dest_name
+                <<" error: "<<strerror(errno));
             return -1;
         }
     }
@@ -935,7 +953,7 @@ int FilterData::copy_file(string src_name, string dest_name)
     in = open(src_name.c_str(), O_RDONLY);
     if (-1 == in) // 打开文件失败,则异常返回
     {    
-        LOG("Error-> Open file failed: %s %s", src_name.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," Open file failed: "<< src_name<<" error: "<< strerror(errno));
         return -1;
     }
      
@@ -947,7 +965,7 @@ int FilterData::copy_file(string src_name, string dest_name)
         out = open(dest_name.c_str(), O_WRONLY | O_CREAT |O_TRUNC);
         if(-1 == out)  // 创建文件失败,则异常返回
         {
-            LOG("Error-> Open file failed: %s %s", dest_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Open file failed: "<< dest_name<<" error: "<< strerror(errno));
             return -1;
         }
     }
@@ -956,7 +974,7 @@ int FilterData::copy_file(string src_name, string dest_name)
     {
         if(write(out, buffer, ret) < ret)
         {
-            LOG("Error-> write failed: %s %s", dest_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," write failed: "<< dest_name<<" error: "<< strerror(errno));
         }
     }
      
@@ -1019,14 +1037,14 @@ int FilterData::process_files(
         fread.open(input_name.c_str());
         if(!fread)
         {
-            LOG("Error-> Open file failed: %s", input_name.c_str());
+            LOG4CPLUS_ERROR(logger," Open file failed: "<< input_name);
             return -1;
         }
 
         fout.open(temp_name.c_str(), ios::trunc|ios::out);
         if(!fout)
         {
-            LOG("Error-> Open file failed: %s", temp_name.c_str());
+            LOG4CPLUS_ERROR(logger," Open file failed: "<< temp_name);
             return -1;
         }
 
@@ -1098,7 +1116,7 @@ int FilterData::process_files(
                 if(0 != ret)
                 {
                     col_spill_flag = false;
-                    LOG("Warning-> In tish file: %s", input_name.c_str());
+                    LOG4CPLUS_ERROR(logger," In tish file: "<< input_name);
                 }
                 fout<< boost::join(v_out_str, p_config->split) <<endl;
             }
@@ -1127,16 +1145,16 @@ int FilterData::process_files(
         struct stat fs;
         if(0 != stat(temp_name.c_str(),&fs)) // 获取文件状态
         {
-            LOG("Error-> Get file stat error: %s %s", 
-                temp_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Get file stat error: "
+                <<temp_name.c_str()<<" error: "<<strerror(errno));
         }
 
         if(0 == fs.st_size && 1 == del_size0) // 判断文件大小，并判断文件为零时是否删除
         {
             if(0 != remove(temp_name.c_str())) // 为零且del_size0为真 删除该文件
             {
-                LOG("Error-> rename error: %s %s", 
-                    temp_name.c_str(), strerror(errno));
+                LOG4CPLUS_ERROR(logger," rename error: "
+                    <<temp_name<<" error: "<< strerror(errno));
             }
         }
         else
@@ -1177,7 +1195,7 @@ void FilterData::analysis_config(size_t thread_num)
         string path_name = path_and_name.substr(0, pos);
         string file_name = path_and_name.substr(pos+1);
 
-        LOG("Log%d->  begin: %s", thread_num, path_and_name.c_str());
+        LOG4CPLUS_INFO(logger,"Log"<<thread_num<<"->  begin: "<< path_and_name);
 
         string bak_path;
         string bak_name;
@@ -1254,7 +1272,7 @@ void FilterData::analysis_config(size_t thread_num)
             rename_file(tmp_name, bak_name);
         }
 
-        LOG("Log%d-> finish: %s", thread_num, path_and_name.c_str());
+        LOG4CPLUS_INFO(logger,"Log"<<thread_num<<"-> finish: "<< path_and_name);
     
     }
 }
@@ -1271,7 +1289,7 @@ void FilterData::scanning_file()
             string input_path = it_st->first;
             vector_str v_file_name;
             vector_str::iterator it_dir;
-            LOG("Log-> start scanning file :%s",input_path.c_str());
+            LOG4CPLUS_INFO(logger," start scanning file :"<<input_path);
 
             if(0 != get_filename_from_dir(input_path, input_path, false))
             {
@@ -1279,7 +1297,7 @@ void FilterData::scanning_file()
                 //it_st--;
                 continue;
             }
-            LOG("Log-> end scanning file :%s",input_path.c_str());
+            LOG4CPLUS_INFO(logger," end scanning file :"<<input_path);
         }
         sleep(60);
     }
@@ -1304,7 +1322,7 @@ int FilterData::create_thread_dir()
 
     if(0 != make_dir(thread_tmp_dir))
     {
-        LOG("Error-> Mkdir tmp_thread error: %s", thread_tmp_dir.c_str());
+        LOG4CPLUS_ERROR(logger," Mkdir tmp_thread error: "<< thread_tmp_dir);
         return -1;
     }
 
@@ -1314,7 +1332,7 @@ int FilterData::create_thread_dir()
         join_path(input_tmp, thread_tmp_dir, it->second.tmp_path);
         if(0 != make_dir(input_tmp))
         {
-            LOG("Error-> Mkdir tmp_thread error: %s", input_tmp.c_str());
+            LOG4CPLUS_ERROR(logger," Mkdir tmp_thread error: " << input_tmp);
             return -1;
         }
     }
@@ -1331,7 +1349,7 @@ int FilterData::make_all_dir()
         {
             if(0 != make_dir(it->v_output[i].output_path.c_str()))
             {
-                LOG("Error-> Mkdir error: %s", it->v_output[i].output_path.c_str());
+                LOG4CPLUS_ERROR(logger," Mkdir error: "<< it->v_output[i].output_path);
                 return -1;
             }
         }
@@ -1340,7 +1358,7 @@ int FilterData::make_all_dir()
         {
             if(0 != make_dir(it->v_input[i].bak_path.c_str()))
             {
-                LOG("Error-> Mkdir error: %s", it->v_input[i].bak_path.c_str());
+                LOG4CPLUS_ERROR(logger," Mkdir error: "<< it->v_input[i].bak_path);
                 return -1;
             }
         }
@@ -1353,7 +1371,7 @@ int FilterData::run(string config_path)
 {
     if(-1 == load_config_info(config_path))
     {
-        LOG("Error-> Load config file is failed: %s",config_path.c_str());
+        LOG4CPLUS_ERROR(logger," Load config file is failed: "<<config_path);
         return -1;
     }
 
@@ -1378,7 +1396,7 @@ int FilterData::run(string config_path)
         int ret = pthread_create(&th_id, NULL, filter_thread, (void*)&thread_arg);
         if(0 != ret)
         {
-            LOG("Error-> create thread error: %s", strerror(ret));
+            LOG4CPLUS_ERROR(logger," create thread error: "<< strerror(ret));
             continue;
         }
         v_thread_id.push_back(th_id);

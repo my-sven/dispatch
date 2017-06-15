@@ -1,9 +1,28 @@
 
 #include "file_manage.h"
-#include "syslog.h"
+
+void FileManage::InitLogger()
+{
+    if (CBaseLogger::p_instance == NULL)
+    {
+        CBaseLogger::p_instance = new CBaseLogger();
+    }
+    
+    LOGGERITOR itor = CBaseLogger::p_instance->m_mapLogger.find("fileManage");
+    if (itor ==  CBaseLogger::p_instance->m_mapLogger.end())
+    {
+        CBaseLogger::p_instance->addLogger("fileManage", DEBUG_LOG_LEVEL);
+        logger = CBaseLogger::p_instance->m_mapLogger["fileManage"];
+    }
+    else
+    {
+        logger = itor->second;
+    }
+}
 
 FileManage::FileManage()
 {
+    InitLogger();
     wait_time = TIME_H;
     front_word = "_";
     back_word = "_";
@@ -14,13 +33,13 @@ int FileManage::load_config_info(string file_name)
     TiXmlDocument doc(file_name.c_str());
     if(!doc.LoadFile())
     {
-        LOG("Error-> Config file: %s load failed", file_name.c_str());
+        LOG4CPLUS_ERROR(logger," Config file load failed :"<< file_name);
         return -1;
     }
 
     TiXmlElement *pRoot = doc.RootElement();
     TiXmlElement *pElement = pRoot->FirstChildElement();
-        TiXmlElement *pSubElement;
+    TiXmlElement *pSubElement;
 
     string src_path="";
     string dest_path="";
@@ -81,7 +100,7 @@ int FileManage::load_config_info(string file_name)
                 wait_time = TIME_D;
                 break;
             default:
-                LOG("Error-> config unit of time error: %s", temp.c_str());
+                LOG4CPLUS_ERROR(logger," config unit of time error: "<< temp.c_str());
                 return -1;
             }
             
@@ -97,8 +116,8 @@ int FileManage::load_config_info(string file_name)
             }
             else
             {
-                LOG("Warning-> Invalid config src_path:%s dest_path:%s time:%d",
-                    src_path.c_str(), dest_path.c_str(), temp.c_str() );
+                LOG4CPLUS_ERROR(logger," Invalid config src_path:"<<src_path
+                    <<" dest_path:"<<dest_path<<" time:"<<temp);
             }
         }
 
@@ -107,7 +126,7 @@ int FileManage::load_config_info(string file_name)
 
     if(v_manage.empty())
     {
-        LOG("Warning-> config is null !");
+        LOG4CPLUS_ERROR(logger," config is null !");
         return -1;
     }
 
@@ -137,7 +156,7 @@ int FileManage::make_dir(string dir_path)
         }
         if(0 != mkdir(dir_path.c_str(), 0777))
         {
-            LOG("Error-> Mkdir error: %s %s", dir_path.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Mkdir error: "<<dir_path << strerror(errno));
             return -1;
         }
     }
@@ -163,8 +182,8 @@ int FileManage::rename_file(string src_name, string dest_name)
     {
         if(0 != access(src_name.c_str(), 0))
         {
-            LOG("Error-> dir or file is not exist: %s", 
-                src_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," dir or file is not exist: "
+                <<src_name<<" error: "<<strerror(errno));
             return -1;
         }
         
@@ -173,8 +192,8 @@ int FileManage::rename_file(string src_name, string dest_name)
         
         if(0 != rename(src_name.c_str(), dest_name.c_str()))
         {
-            LOG("Error-> move %s to %s error: %s", 
-                src_name.c_str(),dest_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," move "<<src_name<<" to "<<dest_name
+                <<" error: "<<strerror(errno));
             return -1;
         }
     }
@@ -188,7 +207,7 @@ int FileManage::remove_dir(string dir_path)
     string file_name;
     if((dirptr = opendir(dir_path.c_str())) == NULL)    
     {  
-        LOG("Error-> Open dir error: %s %s", dir_path.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," Open dir  "<<dir_path<<" error: "<<strerror(errno));
         return -1;
     }
     while (entry = readdir(dirptr))  
@@ -204,7 +223,7 @@ int FileManage::remove_dir(string dir_path)
         struct stat s_stat;
         if(lstat(full_name.c_str(), &s_stat) < 0) 
         {
-            LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Get stat "<< full_name<<" error: "<<strerror(errno));
             continue;
         }
 
@@ -212,7 +231,7 @@ int FileManage::remove_dir(string dir_path)
         {
             if(0 != remove(full_name.c_str())) 
             {
-                LOG("Error-> rename error: %s %s", full_name.c_str(), strerror(errno));
+                LOG4CPLUS_ERROR(logger," rename "<<full_name<<" error: "<< strerror(errno));
             }
         }
         else if(S_ISDIR(s_stat.st_mode)) 
@@ -223,7 +242,7 @@ int FileManage::remove_dir(string dir_path)
 
     if(0 != remove(dir_path.c_str())) 
     {
-        LOG("Error-> rename error: %s %s", dir_path.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," rename "<< dir_path<<" error: "<<strerror(errno));
     }
 
     closedir(dirptr);
@@ -253,7 +272,7 @@ int FileManage::get_dir_from_name(string &dir, string file_name)
     tmp = tmp.substr(pos+1);
     if (tmp.size() == 0)
     {
-        LOG("Warning-> file name time format error: %s",file_name.c_str());
+        LOG4CPLUS_ERROR(logger," file name time format error: "<< file_name);
         return -1;
     }
     else if (tmp.size() > 10)
@@ -276,7 +295,7 @@ int FileManage::back_file_to_dir(string src_path, string dest_path)
     string file_name;
     if((dirptr = opendir(src_path.c_str())) == NULL)    
     {  
-        LOG("Warning-> Open dir fault: %s %s", src_path.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," Open dir "<<src_path<<" error: "<< strerror(errno));
         return -1;
     }
     
@@ -300,7 +319,7 @@ int FileManage::back_file_to_dir(string src_path, string dest_path)
         
         if(lstat(full_name.c_str(), &s_stat) < 0) 
         {
-            LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Get stat "<< full_name<<" error: "<<strerror(errno));
             continue;
         }
 
@@ -333,7 +352,7 @@ int FileManage::check_dir_time(string path, int keep_time)
     string file_name;
     if((dirptr = opendir(path.c_str())) == NULL)    
     {  
-        LOG("Warning-> Open dir fault: %s %s", path.c_str(), strerror(errno));
+        LOG4CPLUS_ERROR(logger," Open dir "<<path<<" error: "<< strerror(errno));
         return -1;
     }
     
@@ -357,7 +376,7 @@ int FileManage::check_dir_time(string path, int keep_time)
         
         if(lstat(full_name.c_str(), &s_stat) < 0) 
         {
-            LOG("Error-> Get stat error: %s %s", full_name.c_str(), strerror(errno));
+            LOG4CPLUS_ERROR(logger," Get stat "<< full_name<<" error: "<<strerror(errno));
             continue;
         }
 
@@ -368,11 +387,6 @@ int FileManage::check_dir_time(string path, int keep_time)
             if(tt > s_stat.st_mtime+keep_time)
             {
                 remove_dir(full_name);
-            /*  char cmd_rm[256]={0};
-                sprintf(cmd_rm, "rm -rf %s", full_name.c_str());
-                system(cmd_rm);
-                LOG("Log-> remove dir: %s", full_name.c_str()); 
-            */
             }
         }
         
@@ -422,7 +436,7 @@ int FileManage::run()
     ret = pthread_create(&th_id1, NULL, manage_file_thread, (void*)this);
     if(0 != ret)
     {
-        LOG("Error-> create thread error: %s", strerror(ret));
+        LOG4CPLUS_ERROR(logger," create thread error: "<< strerror(ret));
         return -1;
     }
 
@@ -430,7 +444,7 @@ int FileManage::run()
     ret = pthread_create(&th_id2, NULL, manage_dir_thread, (void*)this);
     if(0 != ret)
     {
-        LOG("Error-> create thread error: %s", strerror(ret));
+        LOG4CPLUS_ERROR(logger,"Error-> create thread error: "<< strerror(ret));
         return -1;
     }
 

@@ -26,8 +26,8 @@
 #include <dirent.h>
 #include <sys/prctl.h>
 
-
 #include "tinyxml.h"
+#include "syslog.h"
 
 using namespace std;
 
@@ -69,7 +69,10 @@ public:
     static void *manage_file_thread(void* arg);
     static void *manage_dir_thread(void* arg);
 
+    void InitLogger();
+
 private:
+    Logger logger;
     vector_md v_manage;
     int  wait_time;
     string front_word;

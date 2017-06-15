@@ -3,23 +3,26 @@
 #include "file_manage.h"
 #include "syslog.h"
 
-// log文件名./log/sys.log，文件保存时间168小时，单个日志文件大小5M
-SysLog g_log("./log/sys.log", 168, 10);
+Logger getLogger()
+{
+    if (CBaseLogger::p_instance == NULL)
+    {
+        CBaseLogger::p_instance = new CBaseLogger();
+    }
+    return CBaseLogger::p_instance->m_mapLogger["root"];
+}
 
 int main(int argc, char *argv[])
 {
     int ret;
-    g_log.run(); // 开启log自动检测
     
-    string str_start("--------------------------start--------------------------");
-    LOG(str_start.c_str());
+    LOG4CPLUS_DEBUG(getLogger(),"--------------------------start--------------------------");
 
     FileManage fm;
     ret = fm.run();
     if(ret)
     {
-        LOG("Error-> start file manage failed " );
-        cout<<"Error-> start file manage failed "<<endl;
+        LOG4CPLUS_DEBUG(getLogger(), "Error-> start file manage failed " );
         return -1;
     }
     
@@ -38,13 +41,11 @@ int main(int argc, char *argv[])
     ret = fd.run(config_path);
     if(ret)
     {
-        LOG("Error-> Run error: %s",config_path.c_str());
-        cout<<"Error-> Run error: "<< config_path <<endl;
+        LOG4CPLUS_DEBUG(getLogger(),"Error-> Run error: %s"<<config_path);
         return -1;
     }
 
-    string str_finish("--------------------------finish--------------------------");
-    LOG(str_finish.c_str());
+    LOG4CPLUS_DEBUG(getLogger(),"--------------------------end--------------------------");
     
     return ret;
 }

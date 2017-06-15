@@ -41,7 +41,8 @@ INCLUDES=-I$(INC_MODULE)
 #需要引入的库文件及路径
 LIB_ALL=-L$(LIB_PATH) \
 	-ltinyxml \
-	-lpthread
+	-lpthread \
+	-llog4cplus
 
 #需要生成的程序名
 BIN_FILE=se-mrf_FTP

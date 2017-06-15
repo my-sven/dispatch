@@ -16,6 +16,7 @@
 #include <math.h>
 #include <sys/prctl.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include <string>
 #include <sstream>
@@ -30,6 +31,8 @@ using namespace std;
 
 #include "tinyxml.h"
 #include "brd_deque.h"
+#include "syslog.h"
+
 
 #define MAX_PATH 1024
 #define THREAD_TMP_DIR "./tmp/thread"
@@ -280,7 +283,10 @@ public:
 
     static void * filter_thread(void *arg);
 
+    void InitLogger();
+
 private:
+    Logger logger;
     int max_thread_num;
     // 全局配置过滤条件
     Config global_info;
