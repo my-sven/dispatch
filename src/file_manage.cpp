@@ -399,12 +399,11 @@ int FileManage::check_dir_time(string path, int keep_time)
 
 int FileManage::manage_file()
 {
-    vector_md::iterator it;
     while(1)
     {
-        for(it = v_manage.begin(); it != v_manage.end(); it++)
+        for(size_t pos=0; pos < v_manage.size(); pos++)
         {
-            back_file_to_dir(it->src_path, it->dest_path);
+            back_file_to_dir(v_manage[pos].src_path, v_manage[pos].dest_path);
         }
         sleep(60);
     }
@@ -412,12 +411,11 @@ int FileManage::manage_file()
 
 int FileManage::manage_dir()
 {
-    vector_md::iterator it;
     while(1)
     {
-        for(it = v_manage.begin(); it != v_manage.end(); it++)
+        for(size_t pos=0; pos < v_manage.size(); pos++)
         {
-            check_dir_time(it->dest_path, it->keep_time);
+            check_dir_time(v_manage[pos].dest_path, v_manage[pos].keep_time);
         }
         sleep(wait_time);
     }
